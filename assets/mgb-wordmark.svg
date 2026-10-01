@@ -1,0 +1,12 @@
+<svg width="672" height="120" viewBox="0 0 672 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Mass General Brigham</title>
+  <desc id="desc">Mass General Brigham wordmark</desc>
+  <path d="M42 18L68 8L94 18V24H42V18Z" fill="#00A3AD"/>
+  <path d="M42 32H52V58H42V32Z" fill="#00A3AD"/>
+  <path d="M59 32H69V58H59V32Z" fill="#00A3AD"/>
+  <path d="M76 32H86V58H76V32Z" fill="#00A3AD"/>
+  <path d="M93 32H103V58H93V32Z" fill="#00A3AD"/>
+  <path d="M42 64C59 61 77 61 94 64L103 66V72L94 71C77 69 59 69 42 71L33 72V66L42 64Z" fill="#00A3AD"/>
+  <path d="M42 76C59 73 77 73 94 76L103 78V84L94 83C77 81 59 81 42 83L33 84V78L42 76Z" fill="#00A3AD"/>
+  <text x="120" y="82" fill="#0F47A1" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="56" font-weight="700">Mass General Brigham</text>
+</svg>
