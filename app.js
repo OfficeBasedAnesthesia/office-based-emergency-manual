@@ -775,9 +775,6 @@ function renderSearchResults() {
 function renderHome() {
   app.innerHTML = `
     <div class="page-stack home-page">
-      <section class="card home-panel" id="home-results">
-      </section>
-
       <section class="card home-panel">
         <h2>Browse Categories</h2>
         <div class="category-grid">
@@ -792,7 +789,6 @@ function renderHome() {
     </div>
   `;
 
-  renderHomeResults();
 }
 
 function renderCategories() {
