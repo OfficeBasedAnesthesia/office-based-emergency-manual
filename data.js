@@ -1852,8 +1852,7 @@ window.protocols = [
         "title": "Critical CHANGES",
         "items": [
           "If cardiac arrest ADULT VF/VT Go to CHKLST 1-VF/VT Asystole/PEA Go to CHKLST 2- Asystole/PEA",
-          "If cardiac arrest PEDS: VF/VT Go to CHKLST 5-VF/VT Asystole/PEA Go to CHKLST 6- Asystole/PEA",
-          "Hypotension, high peak airways pressure, bronchospasm, tachycardia, urticaria, lack of or decreased breath sounds"
+          "If cardiac arrest PEDS: VF/VT Go to CHKLST 5-VF/VT Asystole/PEA Go to CHKLST 6- Asystole/PEA"
         ]
       },
       {

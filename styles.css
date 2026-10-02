@@ -36,23 +36,31 @@ body {
 }
 
 .site-header {
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
-  padding: 24px 0 20px;
+  background: linear-gradient(135deg, #f7fbff 0%, #eef6ff 58%, #e5f3f6 100%);
+  border: 1px solid #c6d8ed;
+  border-radius: 24px;
+  padding: 28px 32px 24px;
   display: grid;
-  gap: 18px;
-  box-shadow: none;
+  grid-template-columns: minmax(160px, 210px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 34px;
+  row-gap: 22px;
+  box-shadow: 0 16px 42px rgba(37, 56, 79, 0.09);
 }
 
 .brand-lockup {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(184, 200, 220, 0.8);
+  border-radius: 18px;
 }
 
 .mgb-logo {
   display: block;
-  width: min(220px, 100%);
+  width: min(180px, 100%);
   height: auto;
 }
 
@@ -84,6 +92,9 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  grid-column: 1 / -1;
+  padding-top: 18px;
+  border-top: 1px solid rgba(15, 71, 161, 0.16);
 }
 
 .top-nav button,
@@ -200,13 +211,15 @@ h1 {
 }
 
 .home-panel {
-  background: #5b95d6;
-  border-color: #5b95d6;
+  background: linear-gradient(145deg, #5b95d6 0%, #437fbf 100%);
+  border-color: #4d89ca;
+  padding: 26px;
+  box-shadow: 0 14px 34px rgba(15, 71, 161, 0.12);
 }
 
 #home-results.home-panel {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(145deg, #164fa7 0%, #0f3e89 100%);
+  border-color: #164fa7;
 }
 
 .home-panel h2,
@@ -218,6 +231,11 @@ h1 {
 .home-panel .category-card {
   background: #ffffff;
   border-color: #c8d6e8;
+  box-shadow: 0 8px 20px rgba(12, 27, 51, 0.1);
+}
+
+.home-page {
+  gap: 24px;
 }
 
 .category-chip {
@@ -2803,6 +2821,20 @@ h1 {
 }
 
 @media (max-width: 900px) {
+  .site-header {
+    grid-template-columns: 1fr;
+    padding: 22px;
+  }
+
+  .brand-lockup {
+    justify-content: flex-start;
+    width: fit-content;
+  }
+
+  .top-nav {
+    grid-column: 1;
+  }
+
   .page-columns:not(.manual-detail-page) {
     grid-template-columns: 1fr;
   }

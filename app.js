@@ -774,14 +774,7 @@ function renderSearchResults() {
 
 function renderHome() {
   app.innerHTML = `
-    <div class="page-stack">
-      <section class="card">
-        <form class="search-form" id="home-search-form">
-          <input class="search-bar" id="home-search" placeholder="Search symptoms, signs, or concerns..." value="${escapeHtml(state.homeQuery)}" />
-          <button class="button-link search-submit" type="submit">Search</button>
-        </form>
-      </section>
-
+    <div class="page-stack home-page">
       <section class="card home-panel" id="home-results">
       </section>
 
@@ -800,13 +793,6 @@ function renderHome() {
   `;
 
   renderHomeResults();
-
-  document.querySelector("#home-search-form")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    state.homeQuery = document.querySelector("#home-search")?.value ?? "";
-    syncHash();
-    renderHomeResults();
-  });
 }
 
 function renderCategories() {
