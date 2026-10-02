@@ -82,6 +82,34 @@ function expandQuery(query) {
   return [...expansions].filter(Boolean);
 }
 
+function editDistance(left, right) {
+  if (left === right) return 0;
+  if (!left.length) return right.length;
+  if (!right.length) return left.length;
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= left.length; i += 1) {
+    let diagonal = previous[0];
+    previous[0] = i;
+    for (let j = 1; j <= right.length; j += 1) {
+      const above = previous[j];
+      previous[j] = Math.min(
+        previous[j] + 1,
+        previous[j - 1] + 1,
+        diagonal + (left[i - 1] === right[j - 1] ? 0 : 1)
+      );
+      diagonal = above;
+    }
+  }
+  return previous[right.length];
+}
+
+function fuzzyTermMatch(term, candidate) {
+  if (term.length < 4 || candidate.length < 4) return false;
+  const allowedDistance = Math.max(term.length, candidate.length) >= 8 ? 2 : 1;
+  if (Math.abs(term.length - candidate.length) > allowedDistance) return false;
+  return editDistance(term, candidate) <= allowedDistance;
+}
+
 function titleCaseCategory(category) {
   switch (category) {
     case "critical-events": return "Critical Events";
@@ -128,17 +156,25 @@ function rankProtocols(items, query) {
   return [...items]
     .map((protocol) => {
       const haystack = buildSearchText(protocol);
+      const haystackTokens = [...new Set(normalizeText(haystack).split(" ").filter(Boolean).map(stemTerm))];
+      const titleTokens = normalizeText(protocol.title).split(" ").filter(Boolean).map(stemTerm);
+      const tagTokens = protocol.tags.flatMap((tag) => normalizeText(tag).split(" ").filter(Boolean).map(stemTerm));
+      const aliasTokens = (protocol.searchAliases || []).flatMap((alias) => normalizeText(alias).split(" ").filter(Boolean).map(stemTerm));
       let score = 0;
 
       for (const term of expandedTerms) {
         if (normalizeText(protocol.title).includes(term)) score += 10;
+        else if (titleTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 9;
         if (protocol.tags.some((tag) => normalizeText(tag).includes(term))) score += 7;
+        else if (tagTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 6;
         if ((protocol.searchAliases || []).some((alias) => normalizeText(alias).includes(term))) score += 8;
+        else if (aliasTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 7;
         if (haystack.includes(term)) score += 3;
+        if (!haystack.includes(term) && haystackTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 2;
       }
 
       if (haystack.includes(normalized)) score += 10;
-      if (baseTerms.every((term) => haystack.includes(term))) score += 8;
+      if (baseTerms.every((term) => haystack.includes(term) || haystackTokens.some((candidate) => fuzzyTermMatch(term, candidate)))) score += 8;
 
       return { protocol, score };
     })
@@ -275,6 +311,9 @@ function renderSlideChecklist(items, formatText = escapeHtml) {
     <div class="anaphylaxis-checklist">
       ${startItems.map((item) => {
         const trimmed = item.trim();
+        if (/^Emergency or disaster preparedness$/i.test(trimmed)) {
+          return `<div class="anaphylaxis-subhead evacuation-preparedness-heading">${escapeHtml(trimmed)}</div>`;
+        }
         const alternative = trimmed.match(/^--\s*or\s*--\s*(.+)$/i);
         if (alternative) {
           return `
@@ -318,21 +357,30 @@ function renderSlideSection(section, protocolId = "") {
     section.title === "Critical CHANGES" ? "anaphylaxis-critical-card" :
     "";
 
-  if (protocolId === "acls-tachycardia-unstable" && section.title === "Critical CHANGES") {
+  if (["acls-tachycardia-unstable", "pals-tachycardia-unstable"].includes(protocolId) && section.title === "Critical CHANGES") {
+    const peds = protocolId === "pals-tachycardia-unstable";
     return `
+      ${peds ? `<section class="section-card pals-treatment-card">
+        <div class="section-header">CONDITION with pulse PEDS TREATMENT</div>
+        <div class="pals-treatment-grid">
+          <div><b>Narrow Complex,<br>regular</b><p>Adenosine: 0.1-0.3mg/kg IV push (1st dose 6mg max, 2nd dose 12mg max)</p></div>
+          <div><b>Wide complex,<br>regular</b><p>Amiodarone: 5mg/kg IV over 20-60min<br>Procainamide: 15mg/kg IV over 30-60min<br>Lidocaine: 1mg/kg IV</p></div>
+          <div><b>Torsades de Pointes</b><p>MgSO4: 25-50 mg/kg/dose<br>Lidocaine: 1mg/kg IV<br>NaBicarb<br>Temp pacing → CHKLST 7</p></div>
+        </div>
+      </section>` : ""}
       <section class="anaphylaxis-critical tachy-critical-card">
         <div class="anaphylaxis-critical-header">Critical CHANGES</div>
         <div class="tachy-critical-body">
           <p>If cardioversion required but unable to synchronize shock, use<br>HIGH-ENERGY unsynchronized shocks</p>
           <h4>If cardiac arrest:</h4>
-          <div class="tachy-arrest-row"><b>VF/VT</b><span>Go to <button class="manual-case-link" type="button" data-open-protocol="acls-cardiac-arrest-vf-vt">CHKLST 1-VF/VT</button></span></div>
-          <div class="tachy-arrest-row"><b>Asystole/PEA</b><span>Go to <button class="manual-case-link" type="button" data-open-protocol="acls-cardiac-arrest-asystole-pea">CHKLST 2-Asystole/PEA</button></span></div>
+          <div class="tachy-arrest-row"><b>VF/VT</b><span>Go to <button class="manual-case-link" type="button" data-open-protocol="${peds ? "pals-cardiac-arrest-vf-vt" : "acls-cardiac-arrest-vf-vt"}">CHKLST ${peds ? "5" : "1"}-VF/VT</button></span></div>
+          <div class="tachy-arrest-row"><b>Asystole/PEA</b><span>Go to <button class="manual-case-link" type="button" data-open-protocol="${peds ? "pals-cardiac-arrest-asystole-pea" : "acls-cardiac-arrest-asystole-pea"}">CHKLST ${peds ? "6" : "2"}-Asystole/PEA</button></span></div>
         </div>
       </section>
     `;
   }
 
-  if (protocolId === "acls-tachycardia-unstable" && section.title === "During resuscitation") {
+  if (["acls-tachycardia-unstable", "pals-tachycardia-unstable"].includes(protocolId) && section.title === "During resuscitation") {
     return `
       <section class="section-card tachy-during-card">
         <div class="section-header">During resuscitation</div>
@@ -345,47 +393,48 @@ function renderSlideSection(section, protocolId = "") {
     `;
   }
 
-  if (protocolId === "acls-cardiac-arrest-asystole-pea" && tone === "drug") {
+  if (["acls-cardiac-arrest-asystole-pea", "pals-cardiac-arrest-asystole-pea"].includes(protocolId) && tone === "drug") {
+    const peds = protocolId === "pals-cardiac-arrest-asystole-pea";
     const toxin = section.subSections?.find((item) => item.title === "TOXIN Treatments");
     const hyperkalemia = section.subSections?.find((item) => item.title === "HYPERKALEMIA treatment");
     return `
       <section class="section-card section-drug anaphylaxis-drug-card asystole-drug-table">
         <div class="section-header">${escapeHtml(section.title)}</div>
         <div class="asystole-drug-body">
-          <div class="asystole-drug-row"><b>Epinephrine:</b><span>1mg IV, repeat every 3-5 min</span></div>
+          <div class="asystole-drug-row"><b>Epinephrine:</b><span>${peds ? "10 MICROgrams IV" : "1mg IV"}, repeat every 3-5 min</span></div>
           <div class="asystole-drug-group">
             <h4>${escapeHtml(toxin?.title || "TOXIN Treatments")}</h4>
             <div class="asystole-drug-row"><b>Local Anesthetic</b><span>Intralipid 1.5ml/kg bolus, repeat for persistent asystole<br><span class="asystole-indent">Start 0.25-0.5ml/kg/min; 30-60min if refractory hypotension</span></span></div>
             <div class="asystole-drug-row"><b>Beta-blocker</b><span>Glucagon 2-4mg IV push</span></div>
-            <div class="asystole-drug-row"><b>Ca chan blocker</b><span>Ca chloride 1g IV push</span></div>
+            ${peds ? "" : `<div class="asystole-drug-row"><b>Ca chan blocker</b><span>Ca chloride 1g IV push</span></div>`}
           </div>
           <div class="asystole-drug-row separated"><b>Bicarbonate</b><span>1-2mEq/kg, slow IV push; max 50mEq</span></div>
           <div class="asystole-drug-group">
             <h4>${escapeHtml(hyperkalemia?.title || "HYPERKALEMIA treatment")}</h4>
-            <div class="asystole-drug-row"><b>1. Ca gluconate</b><span>30mg/kg IV, max 3000mg</span></div>
-            <div class="asystole-drug-row"><b class="asystole-or">--- or ---<br>Ca chloride</b><span><br>10mg/kg IV, max 2000mg</span></div>
+            <div class="asystole-drug-row"><b>1. Ca gluconate</b><span>${peds ? "60" : "30"}mg/kg IV, max 3000mg</span></div>
+            <div class="asystole-drug-row"><b class="asystole-or">--- or ---<br>Ca chloride</b><span><br>${peds ? "20" : "10"}mg/kg IV, max 2000mg</span></div>
           </div>
-          <div class="asystole-drug-row separated"><b>2. Insulin</b><span>10 units regular IV with 1-2 amps D50W</span></div>
+          <div class="asystole-drug-row separated"><b>2. Insulin</b><span>${peds ? "0.1 units/kg IV with Dextrose 0.25-1g/kg" : "10 units regular IV with 1-2 amps D50W"}</span></div>
         </div>
       </section>
     `;
   }
 
-  if (protocolId === "acls-cardiac-arrest-asystole-pea" && section.title === "During CPR") {
+  if (["acls-cardiac-arrest-asystole-pea", "pals-cardiac-arrest-asystole-pea"].includes(protocolId) && section.title === "During CPR") {
+    const peds = protocolId === "pals-cardiac-arrest-asystole-pea";
     return `
       <section class="section-card asystole-during-card">
         <div class="section-header">During CPR</div>
         <div class="asystole-during-body">
           <b>Airway:</b><span>Bag-mask sufficient (if ventilation adequate)</span>
-          <b>Circulation:</b><span>Confirm adequate IV/IO access<br>Consider IV fluids wide open<br>Consider ECMO for select potentially reversible causes</span>
-          <b>Assign roles:</b><span>Chest compression, Airway, Vascular access, Timing,</span>
-          <b>Code</b><span>cart, documentation</span>
+          <b>Circulation:</b><span>Confirm adequate IV/IO access<br>Consider IV fluids wide open<br>${peds ? "Consider ECMO if cardiac arrest &gt; 6min" : "Consider ECMO for select potentially reversible causes"}</span>
+          <b>Assign roles:</b><span>Chest compression, Airway, Vascular access, Timing,<br>cart, documentation</span>
         </div>
       </section>
     `;
   }
 
-  if (protocolId === "acls-bradycardia-unstable" && section.title === "During resuscitation") {
+  if (["acls-bradycardia-unstable", "pals-bradycardia-unstable"].includes(protocolId) && section.title === "During resuscitation") {
     return `
       <section class="section-card brady-during-card">
         <div class="section-header">During resuscitation</div>
@@ -393,6 +442,24 @@ function renderSlideSection(section, protocolId = "") {
           <b>Airway:</b><span>Assess and secure</span>
           <b>Circulation:</b><span>Confirm adequate IV/IO access<br>Consider IV fluids wide open</span>
           <b>Assign roles:</b><span>Airway, Vascular access, Timing,<br>Code cart, documentation</span>
+        </div>
+      </section>
+    `;
+  }
+
+  if (protocolId === "pals-bradycardia-unstable" && tone === "drug") {
+    return `
+      <section class="section-card pals-brady-drug-card">
+        <div class="section-header">DRUG DOSES and treatments PEDS</div>
+        <div class="pals-brady-drug-body">
+          <div class="pals-brady-dose-row"><b>Atropine</b><span>0.01-0.2mg/kg IV; max 3mg total</span></div>
+          <div class="pals-brady-dose-row"><b>Epinephrine</b><span>10 MICROgram/kg IV</span></div>
+          <div class="pals-brady-overdose">
+            <h4>OVERDOSE <span>Treatments</span></h4>
+            <div class="pals-brady-dose-row"><b>Ca chan blocker</b><span>Ca chloride 10-20mg IV push</span></div>
+            <div class="pals-brady-or">--- or ---</div>
+            <div class="pals-brady-indent">Ca gluconate 50mg/kg IV<br>If ineffective, then Glucagon at above doses</div>
+          </div>
         </div>
       </section>
     `;
@@ -421,7 +488,7 @@ function renderSlideSection(section, protocolId = "") {
 
   if (section.title === "BIPHASIC CARDIOVERSION energy levels") {
     const rows = section.items.slice(1).map((item) => {
-      const match = item.match(/^(Narrow complex, regular|Narrow complex, irregular|Wide complex, regular|Wide complex, irregular)\s+(.+)$/i);
+      const match = item.match(/^(Narrow complex, regular|Narrow complex, irregular|Wide complex, regular|Wide complex, irregular|SVT, tachyarrhythmia)\s+(.+)$/i);
       return match ? [match[1], match[2]] : [item, ""];
     });
     return `
@@ -436,6 +503,25 @@ function renderSlideSection(section, protocolId = "") {
   }
 
   if (section.title === "Critical CHANGES") {
+    if (protocolId === "pals-bradycardia-unstable") {
+      return `
+        <section class="section-card pals-heart-rate-card">
+          <div class="pals-heart-rate-grid">
+            <b>Age</b><b>HR</b>
+            <span>&lt; 30 days</span><span>&lt; 100</span>
+            <span>&gt; 30 days &amp; &lt; 1 yr</span><span>&lt; 80</span>
+            <span>&gt; 1 yr</span><span>&lt; 60</span>
+          </div>
+        </section>
+        <section class="anaphylaxis-critical tachy-critical-card">
+          <div class="anaphylaxis-critical-header">Critical CHANGES</div>
+          <div class="tachy-critical-body">
+            <p>If PEA develops (no pulse)</p>
+            <div class="pals-pea-link"><span aria-hidden="true">•</span><span>Go to <button class="manual-case-link" type="button" data-open-protocol="pals-cardiac-arrest-asystole-pea">CHKLST 6-Asystole/PEA</button></span></div>
+          </div>
+        </section>
+      `;
+    }
     const adultArrest = section.items.find((item) => /^If cardiac arrest ADULT/i.test(item));
     const pedsArrest = section.items.find((item) => /^If cardiac arrest PEDS/i.test(item));
     const remaining = section.items.filter((item) => item !== adultArrest && item !== pedsArrest);
@@ -582,9 +668,10 @@ function getPopulationLabel(protocol) {
 }
 
 function renderSlideCase(protocol) {
-  const isAsystole = protocol.id === "acls-cardiac-arrest-asystole-pea";
-  const isBradycardia = protocol.id === "acls-bradycardia-unstable";
-  const isTachycardia = protocol.id === "acls-tachycardia-unstable";
+  const isAsystole = ["acls-cardiac-arrest-asystole-pea", "pals-cardiac-arrest-asystole-pea"].includes(protocol.id);
+  const isBradycardia = ["acls-bradycardia-unstable", "pals-bradycardia-unstable"].includes(protocol.id);
+  const isTachycardia = ["acls-tachycardia-unstable", "pals-tachycardia-unstable"].includes(protocol.id);
+  const isPeds = protocol.category === "pals";
   const usesReferenceLayout = isBradycardia || isTachycardia;
   const primarySection = getPrimarySlideSection(protocol.rawSections);
   const criticalChanges = protocol.rawSections.find((section) => section.title === "Critical CHANGES");
@@ -593,7 +680,7 @@ function renderSlideCase(protocol) {
   let rightSections = supportingSections.filter((section) => !inlineSections.includes(section));
   if (usesReferenceLayout) {
     const panelOrder = isBradycardia
-      ? ["DRUG DOSES and treatments ADULT", "Critical CHANGES", "During resuscitation"]
+      ? ["Critical CHANGES", `DRUG DOSES and treatments ${isPeds ? "PEDS" : "ADULT"}`, "During resuscitation"]
       : ["BIPHASIC CARDIOVERSION energy levels", "Critical CHANGES", "During resuscitation"];
     rightSections = rightSections.sort((a, b) => panelOrder.indexOf(a.title) - panelOrder.indexOf(b.title));
   }
@@ -605,7 +692,6 @@ function renderSlideCase(protocol) {
         <div class="anaphylaxis-title-block">
           ${isAsystole ? `
             <div class="asystole-title-row">
-              <span class="asystole-slide-number">2</span>
               <h2>${escapeHtml(protocol.title)}</h2>
               <div class="asystole-rhythm-strips" aria-label="Asystole and PEA rhythm examples">
                 <div class="rhythm-strip"><b>Asystole</b><span class="flat-rhythm"></span></div>
@@ -625,7 +711,7 @@ function renderSlideCase(protocol) {
           <div class="anaphylaxis-start-badge">${escapeHtml(getSlideBadgeLabel(primarySection.title))}</div>
           <div class="anaphylaxis-main-box">
             ${isAsystole
-              ? renderAsystoleChecklist()
+              ? renderAsystoleChecklist(isPeds)
               : isTachycardia
               ? renderTachycardiaChecklist(primarySection.items)
               : renderSlideChecklist(primarySection.items, isAsystole ? linkifyAsystoleChecklist : escapeHtml)}
@@ -648,7 +734,7 @@ function linkifyAsystoleChecklist(text) {
   return html.replace(label, `<button class="manual-case-link" type="button" data-open-protocol="acls-cardiac-arrest-vf-vt">${label}</button>`);
 }
 
-function renderAsystoleChecklist() {
+function renderAsystoleChecklist(isPeds = false) {
   return `
     <div class="asystole-checklist">
       <div class="anaphylaxis-line primary">1 Call for help and a code cart</div>
@@ -662,7 +748,8 @@ function renderAsystoleChecklist() {
       <div class="asystole-action">Perform CPR</div>
       <div class="asystole-bullet">“Hard and fast” 100-120 compressions/min to depth of 2-2.3 inches</div>
       <div class="asystole-bullet">Ensure full chest recoil with minimal interruptions</div>
-      <div class="asystole-bullet">10 breaths/min, do not over-ventilate</div>
+      <div class="asystole-bullet">${isPeds ? "8" : "10"} breaths/min, do not over-ventilate</div>
+      ${isPeds ? `<div class="asystole-bullet">Do not stop compressions for pulse check, use ETCO<sub>2</sub> for ROSC</div>` : ""}
 
       <div class="asystole-action">Give epinephrine</div>
       <div class="asystole-bullet">Repeat epinephrine every 3-5 min</div>
@@ -678,7 +765,7 @@ function renderAsystoleChecklist() {
       <div class="asystole-hollow">Read aloud Hs and Ts</div>
       <div class="asystole-deep">If VF/VT:</div>
       <div class="asystole-hollow">Resume CPR</div>
-      <div class="asystole-hollow">Go to <button class="manual-case-link" type="button" data-open-protocol="acls-cardiac-arrest-vf-vt">CHKLST 1-VF/VT</button></div>
+      <div class="asystole-hollow">Go to <button class="manual-case-link" type="button" data-open-protocol="${isPeds ? "pals-cardiac-arrest-vf-vt" : "acls-cardiac-arrest-vf-vt"}">CHKLST ${isPeds ? "5" : "1"}-VF/VT</button></div>
     </div>
   `;
 }
@@ -825,7 +912,7 @@ function renderCategories() {
 }
 
 function renderCaseContent(protocol) {
-  if (protocol.id === "acls-cardiac-arrest-vf-vt") {
+  if (["acls-cardiac-arrest-vf-vt", "pals-cardiac-arrest-vf-vt"].includes(protocol.id)) {
     return renderVfVtCase(protocol);
   }
 
@@ -871,6 +958,30 @@ function renderCaseContent(protocol) {
 
   if (protocol.id === "aspiration") {
     return renderAspirationCase(protocol);
+  }
+
+  if (protocol.id === "fire-airway-or-surroundings") {
+    return renderFireCase(protocol);
+  }
+
+  if (protocol.id === "loss-of-power") {
+    return renderPowerLossCase(protocol);
+  }
+
+  if (protocol.id === "loss-of-oxygen") {
+    return renderOxygenLossCase(protocol);
+  }
+
+  if (protocol.id === "workplace-violence") {
+    return renderWorkplaceViolenceCase(protocol);
+  }
+
+  if (protocol.id === "transfer-of-care-mh-patient") {
+    return renderMhTransferCase(protocol);
+  }
+
+  if (protocol.id === "transfer-of-care-non-mh-patient") {
+    return renderNonMhTransferCase(protocol);
   }
 
   if (protocol.id === "postoperative-airway-problem") {
@@ -1787,11 +1898,11 @@ function renderHypercapniaCase(protocol) {
 }
 
 function renderVfVtCase(protocol) {
+  const isPeds = protocol.id === "pals-cardiac-arrest-vf-vt";
   return `
     <div class="vfvt-case-wrap">
       <header class="vfvt-context-header">
         <div class="vfvt-title-row">
-          <span class="vfvt-slide-number">1</span>
           <h2>${escapeHtml(protocol.title)}</h2>
           <div class="vfvt-rhythm-strips" aria-label="VF and VT rhythm examples">
             <div class="rhythm-strip"><b>VF</b><svg viewBox="0 0 150 38" role="img" aria-label="Ventricular fibrillation rhythm"><polyline points="0,29 3,8 6,31 9,5 12,28 15,11 18,34 21,6 24,26 27,13 30,32 33,7 36,25 39,12 42,31 45,9 48,27 51,14 54,33 57,8 60,26 63,11 66,30 69,13 72,34 75,7 78,25 81,12 84,31 87,9 90,27 93,14 96,33 99,8 102,26 105,11 108,30 111,13 114,34 117,7 120,25 123,12 126,31 129,9 132,27 135,14 138,33 141,8 144,26 147,11 150,29" /></svg></div>
@@ -1800,7 +1911,7 @@ function renderVfVtCase(protocol) {
         </div>
         <p>${escapeHtml(protocol.summary)}</p>
       </header>
-    <section class="vfvt-sheet" aria-label="Adult VF and VT cardiac arrest checklist">
+    <section class="vfvt-sheet" aria-label="${isPeds ? "Pediatric" : "Adult"} VF and VT cardiac arrest checklist">
       <div class="vfvt-left">
         <div class="vfvt-start">START</div>
         <div class="vfvt-checklist">
@@ -1812,11 +1923,11 @@ function renderVfVtCase(protocol) {
           <div class="vfvt-step">3 Turn FiO<sub>2</sub> to 100%, turn off volatile anesthetics</div>
           <div class="vfvt-step">4 Start CPR – defibrillation – assessment cycle</div>
           <div class="vfvt-chevron">Perform CPR</div>
-          <div class="vfvt-bullet">“Hard and fast” 100-120 compressions/min to depth of 2-2.3 inches</div>
+          <div class="vfvt-bullet">“Hard and fast” ${isPeds ? "100" : "100-120"} compressions/min to depth of 2-2.3 inches</div>
           <div class="vfvt-bullet">Ensure full chest recoil with minimal interruptions</div>
-          <div class="vfvt-bullet">10 breaths/min, do not over-ventilate</div>
+          <div class="vfvt-bullet">${isPeds ? "8" : "10"} breaths/min, do not over-ventilate</div>
           <div class="vfvt-chevron">Defibrillate</div>
-          <div class="vfvt-bullet">Shock at highest setting (200J biphasic in defibrillator mode)</div>
+          <div class="vfvt-bullet">Shock at highest setting (${isPeds ? "2-4 J/kg" : "200J"} biphasic in defibrillator mode)</div>
           <div class="vfvt-bullet">Resume CPR immediately after shock</div>
           <div class="vfvt-chevron">Give epinephrine</div>
           <div class="vfvt-bullet">Repeat epinephrine every 3-5 min</div>
@@ -1829,21 +1940,22 @@ function renderVfVtCase(protocol) {
           <div class="vfvt-bullet">Treat reversible causes, consider reading aloud Hs and Ts (see list on right)</div>
           <div class="vfvt-bullet">Check rhythm; if rhythm organized, check pulse</div>
           <div class="vfvt-subbullet">If VF/VT continues:</div>
-          <div class="vfvt-deep">Resume CPR – defibrillation – assessment cycle (restart step 4)</div>
+          <div class="vfvt-deep">Resume CPR – defibrillation – assessment cycle (${isPeds ? "repeat step 4), Shock 4 J/kg" : "restart step 4)"}</div>
+          ${isPeds ? `<div class="vfvt-subbullet">If VF/VT continues 2 min after previous attempt:</div><div class="vfvt-deep">Restart step 4, Shock 4-10 J/kg</div>` : ""}
           <div class="vfvt-subbullet">If asystole/PEA:</div>
-          <div class="vfvt-deep">Resume CPR</div>
-          <div class="vfvt-deep">Go to <button class="manual-case-link" type="button" data-open-protocol="acls-cardiac-arrest-asystole-pea">CHKLST 2-Asystole/PEA</button></div>
+          ${isPeds ? "" : `<div class="vfvt-deep">Resume CPR</div>`}
+          <div class="vfvt-deep">Go to <button class="manual-case-link" type="button" data-open-protocol="${isPeds ? "pals-cardiac-arrest-asystole-pea" : "acls-cardiac-arrest-asystole-pea"}">CHKLST ${isPeds ? "6" : "2"}-Asystole/PEA</button></div>
         </div>
       </div>
 
       <div class="vfvt-right">
         <section class="vfvt-panel vfvt-drugs">
-          <h3>DRUG DOSES <span>and treatments ADULT</span></h3>
+          <h3>DRUG DOSES <span>and treatments ${isPeds ? "PEDS" : "ADULT"}</span></h3>
           <div class="vfvt-panel-body">
-            <div class="vfvt-dose-row"><b>Epinephrine:</b><span>1mg IV, repeat every 3-5 min</span></div>
+            <div class="vfvt-dose-row"><b>Epinephrine:</b><span>${isPeds ? "10 MICROgrams IV" : "1mg IV"}, repeat every 3-5 min</span></div>
             <div class="vfvt-subtitle">ANTIARRHYTHMICS</div>
-            <div class="vfvt-dose-row"><b>Amiodarone:</b><span>1<sup>st</sup> dose: 300mg/IV/IO<br>2<sup>nd</sup> dose: 150mg/IV/IO</span></div>
-            <div class="vfvt-dose-row"><b>Magnesium:</b><span>1 to 2 g IV/IO for TdP</span></div>
+            <div class="vfvt-dose-row"><b>Amiodarone:</b><span>${isPeds ? "1st and 2nd dose: 5mg/kg bolus" : "1<sup>st</sup> dose: 300mg/IV/IO<br>2<sup>nd</sup> dose: 150mg/IV/IO"}</span></div>
+            ${isPeds ? `<div class="vfvt-dose-row"><b>Lidocaine:</b><span>1mg/kg bolus</span></div>` : `<div class="vfvt-dose-row"><b>Magnesium:</b><span>1 to 2 g IV/IO for TdP</span></div>`}
           </div>
         </section>
 
@@ -1851,7 +1963,7 @@ function renderVfVtCase(protocol) {
           <h3>DEFIBRILLATOR <span>instructions</span></h3>
           <div class="vfvt-panel-body vfvt-instructions">
             <div>1 Place electrodes on chest</div>
-            <div>2 Turn defibrillator ON, set to DEFIB mode, and increase ENERGY LEVEL to highest setting</div>
+            <div>2 Turn defibrillator ON, set to DEFIB mode, and increase ENERGY LEVEL to ${isPeds ? "2-4 J/kg" : "highest setting"}</div>
             <div>3 Deliver shock: press CHARGE, then SHOCK</div>
           </div>
         </section>
@@ -1859,8 +1971,8 @@ function renderVfVtCase(protocol) {
         <section class="vfvt-panel vfvt-causes">
           <h3>Hs and Ts: Reversible Causes</h3>
           <div class="vfvt-cause-grid">
-            <div>Hydrogen ions (acidosis)<br>Hyperkalemia<br>Hypothermia<br>Hypovolemia<br>Hypoxia</div>
-            <div>Tamponade (cardiac)<br>Tension pneumothorax<br>Thrombosis (coronary/pulmonary)<br>Toxin (local anesthetic, beta<br>blocker, calcium channel blocker)</div>
+            <div>Hydrogen ions (acidosis)<br>Hyperkalemia<br>Hypothermia<br>Hypovolemia<br>Hypoxia${isPeds ? "<br>Hypoglycemia" : ""}</div>
+            <div>Tamponade (cardiac)<br>Tension pneumothorax<br>Thrombosis (coronary/pulmonary)<br>Toxin (local anesthetic, beta<br>blocker, calcium channel blocker)${isPeds ? "<br>Trauma (bleeding)" : ""}</div>
           </div>
         </section>
 
@@ -1868,13 +1980,193 @@ function renderVfVtCase(protocol) {
           <h3>During CPR</h3>
           <div class="vfvt-panel-body vfvt-during-body">
             <b>Airway:</b><span>Bag-mask sufficient (if ventilation adequate)</span>
-            <b>Circulation:</b><span>Confirm adequate IV/IO access<br>Consider IV fluids wide open<br>Consider ECMO for select potentially reversible causes</span>
-            <b>Assign roles:</b><span>Chest compression, Airway, Vascular access, Timing,<br>cart, Documentation</span>
+            <b>Circulation:</b><span>Confirm adequate IV/IO access<br>Consider IV fluids wide open<br>${isPeds ? "Consider ECMO if cardiac arrest &gt; 6min" : "Consider ECMO for select potentially reversible causes"}</span>
+            <b>Assign roles:</b><span>Chest compression, Airway, Vascular access, Timing,<br>Code cart, Documentation</span>
           </div>
         </section>
       </div>
     </section>
     </div>
+  `;
+}
+
+function renderFireCase(protocol) {
+  return `
+    <section class="fire-sheet">
+      <header class="vfvt-context-header">
+        <h2>${escapeHtml(protocol.title)}</h2>
+        <p>Evidence of fire (odor, smoke, flash) on patient or drapes, or in patient’s airway</p>
+      </header>
+      <div class="vfvt-start fire-start">START</div>
+      <div class="fire-callout"><b>1 Call for help, call 911 and call Code Red</b><span>Ask: “Who will be the crisis manager”?</span><span>Call: “Initiate Transfer Protocol”</span><b>2 Obtain fire extinguisher, if needed</b></div>
+      <div class="fire-flow-grid">
+        <section class="fire-path airway-path">
+          <h3>If <strong>AIRWAY</strong> fire</h3>
+          <div class="fire-arrow">↓</div>
+          <div class="fire-node"><h4>Attempt to extinguish fire</h4><ul><li>Shut off medical gases</li><li>Disconnect ventilator</li><li>Remove endotracheal tube</li><li>Remove flammable material from airway</li><li>Pour saline into airway</li></ul></div>
+          <div class="fire-arrow">↓</div>
+          <div class="fire-node"><h4>After fire extinguished</h4><ul><li>Re-establish ventilation using self-inflating bag with room air</li><li>If unable to re-establish ventilation, go to <button class="manual-case-link" type="button" data-open-protocol="difficult-airway">CHKLST 14-DIFFICULT AIRWAY</button></li><li>Avoid N<sub>2</sub>O and minimize FiO<sub>2</sub></li></ul></div>
+        </section>
+        <section class="fire-path nonairway-path">
+          <h3>If <strong>NON-AIRWAY</strong> fire <span>(equipment/electrical)</span></h3>
+          <div class="fire-arrow">↓</div>
+          <div class="fire-node"><ul><li>Avoid N<sub>2</sub>O and minimize FiO<sub>2</sub></li><li>Remove drapes/all flammable materials from patient</li><li>Extinguish burning materials with saline/saline-soaked gauze</li></ul><div class="fire-warning"><b>DO NOT use</b><span>Alcohol-based solutions</span><span>Any liquid on energized electrical items</span></div></div>
+          <div class="fire-decision">Fire PERSISTS after 1 ATTEMPT?</div>
+          <div class="fire-split"><div><b>NO</b><span>After fire extinguished<br>Maintain airway</span></div><div><b>YES</b><span>Use fire extinguisher<br>(safe in wounds)</span></div></div>
+          <div class="fire-decision">Fire STILL PERSISTS?</div>
+          <div class="fire-split"><div><b>NO</b><span>After fire extinguished<br>Maintain airway</span></div><div><b>YES</b><span>Evacuate patient<br>Close OR door<br>Turn OFF gas supply to OR room</span></div></div>
+        </section>
+      </div>
+      <div class="fire-convergence">
+        <div class="fire-converge-label">Both pathways continue</div>
+        <section class="fire-final-node"><h3>Confirm no secondary fire</h3><p>Check surgical area, drapes, towels</p><h3>Assess airway for injury or foreign body</h3><p>Assess ETT integrity · Consider bronchoscopy, if available</p><h3>Assess patient status and devise ongoing management plan</h3><b>Save involved materials/devices for review</b></section>
+      </div>
+    </section>
+  `;
+}
+
+function renderPowerLossCase(protocol) {
+  return `
+    <section class="power-sheet">
+      <header class="vfvt-context-header"><h2>${escapeHtml(protocol.title)}</h2><p>Lights off, loss of suction, loss of ventilation, etc.</p></header>
+      <div class="vfvt-start">START</div>
+      <div class="power-flow-grid">
+        <section class="power-actions">
+          <div class="power-step"><b>1 Call for help</b><span>Ask: “Who will be the crisis manager”?</span><span>Activate: “Facility Power Failure Policy”</span></div>
+          <div class="power-step"><b>2 Have designated person call facility administrator</b><span>Facility must have prior plan to ensure backup generator/power is turned on</span></div>
+          <div class="power-step"><b>3 Find portable flashlights, additional light sources, walkie-talkie, etc.</b></div>
+          <div class="power-step"><b>4 PAUSE surgery</b></div>
+          <div class="power-step"><b>5 Communicate</b><span>With anesthesia, surgery, administrators, OR staff</span></div>
+          <div class="power-step"><b>6 Check outlets and plugs</b><span>Mission-critical machines normally use <strong class="power-red">RED</strong> outlets</span><span>If power is off on a red outlet, try a normal outlet</span></div>
+          <div class="power-decision">VENTILATOR on?</div>
+          <div class="power-responses two"><div><b>YES</b><span>Switch to 100% O<sub>2</sub></span></div><div><b>NO</b><span>Manual ventilation; obtain external O<sub>2</sub> source (pipeline, machine, cylinder)</span></div></div>
+        </section>
+        <section class="power-generator-flow">
+          <div class="power-decision">Backup generator on?</div>
+          <div class="power-responses two generator-responses">
+            <div><b>YES</b><span>Determine with surgeon if safe to proceed, depending on duration of surgery and load of backup generator.<br><br>Cycle mission-critical machines; ensure they are on.</span></div>
+            <div class="power-generator-no"><b>NO</b><ul><li>ABCs of patient; maintain adequate anesthesia/sedation</li><li>Monitoring: portable pulse oximeter, manual blood pressure, portable transport vital signs machine</li><li>All new-generation anesthesia machines have 30–60 min backup power (longer if mechanical ventilation is off); older machines do not</li><li>Obtain a portable battery for any mission-critical machines, if possible</li><li class="power-red">Switch desflurane to sevoflurane, isoflurane, or IV anesthesia<ul><li>Desflurane vaporizer is unreliable during power loss</li><li>Backup power on the anesthesia machine can deliver sevoflurane/isoflurane</li></ul></li><li class="power-red">Obtain adequate drug supplies; do not depend on automated dispensing systems</li><li>Start paper anesthetic record</li><li>Administration should obtain emergency generators, industrial-length power cords, etc.</li><li>Plan for orderly shutdown of OR suites</li></ul></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  `;
+}
+
+function renderOxygenLossCase(protocol) {
+  return `
+    <section class="oxygen-flow-sheet">
+      <header class="vfvt-context-header"><h2>Oxygen Loss or Desaturation</h2><p>Sudden decrease in oxygen saturation despite flows</p></header>
+      <div class="vfvt-start">START</div>
+      <div class="oxygen-callout">1 Call for help</div>
+      <div class="oxygen-flow-main">
+        <div class="oxygen-node primary">Oxygen Loss or Desaturation</div>
+        <div class="oxygen-arrow">↓</div>
+        <div class="oxygen-node resuscitation">ABCs for patient resuscitation</div>
+        <div class="oxygen-arrow">↓</div>
+        <div class="oxygen-node status">Airway patent, breathing effort, circulating well?</div>
+        <div class="oxygen-branch-arrows" aria-hidden="true"><span>↙</span><span>↘</span></div>
+        <div class="oxygen-branches">
+          <section class="oxygen-branch power-branch">
+            <div class="oxygen-branch-label">POWER LOSS?</div>
+            <div class="oxygen-arrow">↓</div>
+            <button class="oxygen-link-node" type="button" data-open-protocol="loss-of-power">Go to CHKLST 11-POWER LOSS</button>
+          </section>
+          <section class="oxygen-branch common-branch">
+            <div class="oxygen-branch-label">MOST FREQUENTLY</div>
+            <div class="oxygen-subbranches">
+              <div class="oxygen-response-card"><h3>Gas contamination</h3><ul><li>Ventilate manually with room air, if necessary</li><li>Obtain backup O<sub>2</sub> cylinder</li><li>Disconnect pipeline from wall</li><li>Monitor vitals</li></ul></div>
+              <div class="oxygen-response-card"><h3>Inadequate pressure <span>(&lt;30 psi)</span></h3><ul><li>Ventilate manually with room air, if necessary</li><li>Obtain backup O<sub>2</sub> cylinder</li><li>Search for source of failure</li><li>Monitor vitals</li></ul></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderWorkplaceViolenceCase(protocol) {
+  const safetyRows = [
+    ["Awareness", "Understand the situation and analyze risks"],
+    ["Vigilance", "Pay attention to gut feelings and external signals"],
+    ["Avoidance", "Place yourself in a position to minimize threats (seeming confident, recognizing dangers, using physical barriers)"],
+    ["Defense", "Defend yourself as a last resort. As needed, scream, use distractions, avoid tunnel vision"],
+    ["Escape", "Go to nearest exit, maintain distance"]
+  ];
+  return `
+    <section class="violence-sheet">
+      <header class="vfvt-context-header"><h2>${escapeHtml(protocol.title)}</h2><p>Threat of a weapon, physical assault, or verbal assault</p></header>
+      <div class="vfvt-start">START</div>
+      <div class="violence-grid">
+        <section class="violence-primary">
+          <div class="violence-steps">
+            <b>1 Use de-escalation tips and be aware of safety principles</b>
+            <b>2 Call 911 when safe to do so</b>
+            <b>3 If an individual has a weapon or is an active threat:</b>
+          </div>
+          <div class="violence-arrow">↓</div>
+          <div class="violence-action-box">
+            <div class="violence-mantra"><strong>Run first.</strong> <em>If you cannot run, hide.</em> <span>If you cannot hide, fight.</span></div>
+            <section class="violence-action run"><h3>Run</h3><ul><li>Run if not directly involved with patient care</li><li>Have an escape route in mind</li><li>Leave physical belongings behind</li><li>Keep your hands visible (palms out)</li></ul></section>
+            <section class="violence-action hide"><h3>Hide</h3><ul><li>Hide if running is not safe or patients cannot run</li><li>Use large objects to block entry and lock the door</li><li>Silence your cell phone or pager</li></ul></section>
+            <section class="violence-action fight"><h3>Fight only as a last resort</h3><ul><li>Use objects as makeshift weapons</li><li>Throw objects; punch; fight together if possible</li></ul></section>
+          </div>
+        </section>
+        <aside class="violence-guidance">
+          <section class="violence-panel deescalation-panel"><h3>De-escalation tips</h3>${["Maintain awareness of your surroundings and have an escape plan", "Approach the individual at a 45-degree angle", "Keep your palms up", "Use your name, ask for theirs, and state why you are here", "Do not take their statements personally"].map((item) => `<p>${item}</p>`).join("")}</section>
+          <section class="violence-panel safety-panel"><h3>Safety Principles</h3><div class="violence-table">${safetyRows.map(([label, text]) => `<div class="violence-term">${label}</div><div>${text}</div>`).join("")}</div></section>
+        </aside>
+      </div>
+    </section>
+  `;
+}
+
+function renderMhTransferCase(protocol) {
+  return `
+    <section class="mh-transfer-sheet">
+      <header class="vfvt-context-header">
+        <h2>Transfer of care Malignant Hyperthermia patient</h2>
+        <p>In presence of triggering agent: unexpected increase in ETCO<sub>2</sub>, unexplained tachycardia/tachypnea, prolonged masseter muscle spasm after succinylcholine. Hyperthermia is a LATE sign</p>
+      </header>
+      <div class="vfvt-start mh-transfer-start">START</div>
+      <div class="mh-transfer-grid">
+        <div class="mh-transfer-column">
+          <section class="mh-transfer-step"><h3>1 Recognize suspected MH</h3><ul><li><strong>Have designated person call 911 and EMT #</strong> upon recognition</li><li>Indicate that it is an <strong>“Immediate Arrest Situation”</strong></li><li>Call MHAUS MH Hotline <strong>1.800.MH.HYPER (644.9737)</strong> for additional assistance 24/7/365</li><li>Use MHAUS “Emergency Therapy for MH” protocol poster criteria once MH diagnosis is made or suspected</li><li>Qualified on-site Anesthesia Care Provider at OBA facility will serve as primary consultants for recognition and treatment of MH and decisions regarding TT, receiving health care facility (RHCF), and timing of transfer</li></ul></section>
+          <section class="mh-transfer-step"><h3>2 Discontinue triggering agents, initiate treatment</h3><ul><li>IV Dantrolene 2.5mg/kg (dissolved in sterile preservative-free water) should be given immediately</li><li>See <button class="manual-case-link" type="button" data-open-protocol="mh-adult-ped-dosing">CKLST 24-MH</button>; initiate pending transfer</li><li><strong>36 vials of Dantrolene sodium must be available wherever MH triggering agents are used</strong></li></ul></section>
+        </div>
+        <div class="mh-transfer-column">
+          <section class="mh-transfer-step"><h3>3 Implement Emergent MH Transfer plan</h3><ul><li>Collect patient data: vital signs, temperature, ETCO<sub>2</sub> trends, electrolytes, ECG</li><li>Do not delay transfer!</li><li class="mh-transfer-alert">Emergency transfer is mandatory</li></ul></section>
+          <section class="mh-transfer-step"><h3>4 Notify <span class="mh-transfer-alert">Receiving Healthcare Facility (RHCF)</span>: coordinate communication</h3><ul><li>Direct personal communication is ideal between:<div class="mh-transfer-indent">Anesthesia Care Provider at OBA facility<br>Receiving Physician (critical care, primary, or emergency medicine providers at RHCF)</div></li><li>Coordination of anticipated post-resuscitation needs is ESSENTIAL between Anesthesia Care Provider and Receiving Physician</li></ul></section>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderNonMhTransferCase(protocol) {
+  return `
+    <section class="mh-transfer-sheet non-mh-transfer-sheet">
+      <header class="vfvt-context-header">
+        <h2>Transfer of care non-Malignant Hyperthermia patient</h2>
+        <p>In need of emergency transfer for cardiopulmonary reasons or unable to provide necessary and required care at current ambulatory facility</p>
+      </header>
+      <div class="vfvt-start mh-transfer-start">START</div>
+      <div class="mh-transfer-grid">
+        <div class="mh-transfer-column">
+          <section class="mh-transfer-step non-mh-primary-steps">
+            <h3>1 Recognize signs of an emergency</h3>
+            <h3>2 Initiate Facility Transfer Protocol</h3>
+            <h3>3 Have <strong>designated person call 911 and contact EMT #</strong> for emergency</h3>
+            <h3>4 Office <strong>must have prior plan/transfer of care agreement</strong> in place to ensure EMT arrives within 10 min</h3>
+            <h3>5 Qualified Office-based facility Anesthesia care provider must serve as primary provider for the patient</h3>
+          </section>
+        </div>
+        <div class="mh-transfer-column">
+          <section class="mh-transfer-step"><h3>6 Implement Emergent non-MH Facility Transfer plan</h3><ul><li>Collect patient data: vital signs, temperature, ETCO<sub>2</sub> trends, labs, ECG</li></ul></section>
+          <section class="mh-transfer-step"><h3>7 Notify <span class="mh-transfer-alert">Receiving Healthcare Facility (RHCF)</span>: coordinate communication</h3><ul><li>Direct personal communication is ideal between:<div class="mh-transfer-indent">Anesthesia Care Provider at OBA facility<br>Receiving Physician (critical care, primary, or emergency medicine providers at RHCF)</div></li><li>Coordination of anticipated post-resuscitation needs is ESSENTIAL between Anesthesia Care Provider and Receiving Physician</li></ul></section>
+        </div>
+      </div>
+    </section>
   `;
 }
 

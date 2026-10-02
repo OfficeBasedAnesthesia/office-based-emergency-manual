@@ -584,7 +584,7 @@ window.protocols = [
       "vt",
       "defibrillation"
     ],
-    "summary": "PALS pathway for shockable pediatric cardiac arrest.",
+    "summary": "Shockable pulseless cardiac arrest.",
     "callEms": true,
     "lastReviewed": "2025-01-01",
     "version": "OBA-EM-2025",
@@ -604,7 +604,7 @@ window.protocols = [
       "Say: “Shock patient as soon as defibrillator arrives”",
       "Call: “Initiate Transfer Protocol”",
       "2 Put backboard under patient, supine",
-      "3 Turn FiO2 to 100%, turn off volatiles anesthetics",
+      "3 Turn FiO2 to 100%, turn off volatile anesthetics",
       "4 Start CPR – defibrillation – assessment cycle",
       "Perform CPR",
       "“Hard and fast” 100 compressions/min to depth of 2-2.3 inches",
@@ -662,7 +662,7 @@ window.protocols = [
           "Say: “Shock patient as soon as defibrillator arrives”",
           "Call: “Initiate Transfer Protocol”",
           "2 Put backboard under patient, supine",
-          "3 Turn FiO2 to 100%, turn off volatiles anesthetics",
+          "3 Turn FiO2 to 100%, turn off volatile anesthetics",
           "4 Start CPR – defibrillation – assessment cycle",
           "Perform CPR",
           "“Hard and fast” 100 compressions/min to depth of 2-2.3 inches",
@@ -748,7 +748,7 @@ window.protocols = [
       "asystole",
       "pea"
     ],
-    "summary": "PALS pathway for non-shockable pediatric cardiac arrest.",
+    "summary": "PALS pathway for non-shockable pulseless pediatric cardiac arrest.",
     "callEms": true,
     "lastReviewed": "2025-01-01",
     "version": "OBA-EM-2025",
@@ -1311,7 +1311,7 @@ window.protocols = [
       "office emergency",
       "disaster"
     ],
-    "summary": "Checklist for evacuation during an office-based anesthesia emergency.",
+    "summary": "Evidence of emergency or disaster in the office-based setting",
     "callEms": false,
     "lastReviewed": "2025-01-01",
     "version": "OBA-EM-2025",
@@ -1340,8 +1340,7 @@ window.protocols = [
       "5 Ensure lines of communication are opened between the Office-based facility and the Receiving Health Care Facility (RHCF)",
       "Ensure transport team is equipped to monitor patient",
       "6 Prepare to evacuate",
-      "Bring medications, airway equipment, extra IV",
-      "Evidence of emergency or disaster in the office-based setting"
+      "Bring medications, airway equipment, extra IV"
     ],
     "rawSections": [
       {
@@ -1361,8 +1360,7 @@ window.protocols = [
           "5 Ensure lines of communication are opened between the Office-based facility and the Receiving Health Care Facility (RHCF)",
           "Ensure transport team is equipped to monitor patient",
           "6 Prepare to evacuate",
-          "Bring medications, airway equipment, extra IV",
-          "Evidence of emergency or disaster in the office-based setting"
+          "Bring medications, airway equipment, extra IV"
         ]
       }
     ],

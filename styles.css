@@ -238,6 +238,80 @@ h1 {
   gap: 24px;
 }
 
+.pals-treatment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pals-treatment-grid > div {
+  padding: 12px;
+  border-right: 1px solid #b8b8b8;
+}
+
+.pals-treatment-grid > div:last-child { border-right: 0; }
+.pals-treatment-grid p { margin: 10px 0 0; line-height: 1.35; }
+
+.pals-heart-rate-grid {
+  display: grid;
+  grid-template-columns: 1fr .58fr;
+  align-items: center;
+}
+
+.pals-heart-rate-grid > * { padding: 10px 14px; text-align: center; border-bottom: 1px solid #d7d7d7; }
+.pals-heart-rate-grid > b { background: #7435a8; color: #fff; font-size: 1.05rem; }
+.pals-heart-rate-grid > span:nth-last-child(-n + 2) { border-bottom: 0; }
+.pals-heart-rate-grid > span:nth-child(odd) { border-right: 1px solid #d7d7d7; }
+
+.pals-pea-link { display: grid; grid-template-columns: 18px 1fr; gap: 4px; align-items: start; margin-top: 8px; }
+.pals-pea-link > span:first-child { color: #777; font-size: 1.25rem; line-height: 1; }
+
+.pals-brady-drug-card .section-header { background: #5c9bd3; }
+.pals-brady-drug-body { padding: 0; }
+.pals-brady-dose-row { display: grid; grid-template-columns: 170px 1fr; gap: 12px; padding: 10px 14px; }
+.pals-brady-overdose { padding: 12px 14px 16px; border-top: 1px solid #b8b8b8; }
+.pals-brady-overdose h4 { margin: 0 0 8px; color: #5c9bd3; font-size: 1.28rem; }
+.pals-brady-overdose h4 span { font-size: .86em; }
+.pals-brady-overdose .pals-brady-dose-row { padding: 0; }
+.pals-brady-or { margin: 5px 0 3px 170px; font-weight: 800; }
+.pals-brady-indent { margin-left: 182px; line-height: 1.45; font-weight: 600; }
+
+.fire-sheet { display: grid; gap: 16px; color: #111; }
+.fire-start { width: fit-content; }
+.fire-callout { display: grid; gap: 5px; padding: 0 12px; font-size: 1.02rem; }
+.fire-callout span { padding-left: 18px; }
+.fire-flow-grid { display: grid; grid-template-columns: 1fr 1.35fr; gap: 26px; align-items: start; }
+.fire-path { display: grid; gap: 10px; }
+.fire-path > h3 { margin: 0; padding: 12px 16px; background: #25384f; color: #fff; border-radius: 2px; }
+.fire-path > h3 span { font-weight: 500; }
+.fire-arrow, .fire-merge-arrow { color: #4b83d1; font-size: 1.8rem; line-height: 1; text-align: center; font-weight: 800; }
+.fire-node, .fire-final-node { border: 1px solid #9eabb9; border-radius: 2px; background: #fff; padding: 16px 18px; box-shadow: none; }
+.fire-node h4, .fire-final-node h3 { margin: 0 0 8px; }
+.fire-node ul { margin: 0; padding-left: 22px; line-height: 1.45; }
+.fire-warning { display: grid; gap: 3px; margin-top: 12px; padding: 10px 12px; border-left: 5px solid #c54c43; background: #fff3f1; }
+.fire-warning b { color: #b52f27; text-decoration: underline; }
+.fire-decision { padding: 12px 16px; background: #dfe6f2; border: 1px solid #aebbd0; font-weight: 800; text-align: center; }
+.fire-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.fire-split > div { display: grid; grid-template-rows: 28px auto; gap: 7px; align-content: start; text-align: center; }
+.fire-split b { color: #0f47a1; }
+.fire-split span { min-height: 76px; padding: 12px; border: 1px solid #aeb8c5; border-radius: 2px; background: #f7fbff; }
+.fire-convergence { display: grid; justify-items: center; gap: 12px; margin-top: 18px; }
+.fire-converge-lines { width: 72%; height: 46px; background: linear-gradient(to bottom right, transparent 49%, #4b83d1 49.5%, #4b83d1 50.5%, transparent 51%) left/50% 100% no-repeat, linear-gradient(to bottom left, transparent 49%, #4b83d1 49.5%, #4b83d1 50.5%, transparent 51%) right/50% 100% no-repeat; }
+.fire-converge-label { margin-top: -2px; padding: 7px 18px; border: 1px solid #789bc5; border-radius: 2px; background: #e4edf8; color: #183a62; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.fire-final-node { max-width: 720px; width: 100%; justify-self: center; text-align: center; }
+.fire-final-node p { margin: -3px 0 12px; }
+
+.evacuation-preparedness-heading {
+  margin: 0 0 4px;
+  padding: 0;
+  border: 0;
+  font-size: 1.3rem;
+  color: #111;
+}
+
+@media (max-width: 820px) {
+  .fire-flow-grid { grid-template-columns: 1fr; }
+}
+
 .category-chip {
   display: inline-flex;
   align-self: start;
@@ -2011,17 +2085,9 @@ h1 {
 
 .vfvt-title-row {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: end;
-}
-
-.vfvt-slide-number {
-  color: #aaa;
-  font-size: 3.1rem;
-  font-weight: 300;
-  line-height: .9;
-  text-align: center;
 }
 
 .vfvt-title-row h2 {
@@ -2260,17 +2326,9 @@ h1 {
 
 .asystole-title-row {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: end;
-}
-
-.asystole-slide-number {
-  color: #aaa;
-  font-size: 3.1rem;
-  font-weight: 300;
-  line-height: .9;
-  text-align: center;
 }
 
 .asystole-title-row h2 {
@@ -2820,7 +2878,216 @@ h1 {
   letter-spacing: -0.01em;
 }
 
+/* Loss of power decision flow */
+.power-sheet {
+  display: grid;
+  gap: 18px;
+}
+
+.power-flow-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.35fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.power-actions,
+.power-generator-flow {
+  display: grid;
+  gap: 12px;
+}
+
+.power-step,
+.power-node {
+  display: grid;
+  gap: 5px;
+  padding: 2px 10px;
+}
+
+.power-step b {
+  font-size: 1.05rem;
+}
+
+.power-step span {
+  padding-left: 20px;
+  line-height: 1.35;
+}
+
+.power-step + .power-step { margin-top: 2px; }
+
+.power-decision {
+  position: relative;
+  width: min(440px, 88%);
+  margin: 13px auto 4px;
+  padding: 14px 20px;
+  border: 2px solid #174f92;
+  border-radius: 10px;
+  background: #dcecf8;
+  color: #0b2f5d;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.power-responses {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.power-responses > div {
+  display: grid;
+  align-content: start;
+  align-self: start;
+  gap: 8px;
+  min-height: 116px;
+  padding: 14px;
+  border: 2px solid #7eaed7;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgb(24 75 128 / 9%);
+}
+
+.power-responses b {
+  width: fit-content;
+  padding: 4px 13px;
+  border-radius: 999px;
+  background: #174f92;
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.power-responses span {
+  line-height: 1.35;
+}
+
+.power-generator-no ul { margin: 0; padding-left: 20px; line-height: 1.42; }
+.power-generator-no > ul > li { margin: 0 0 8px; }
+.power-generator-no ul ul { margin-top: 6px; }
+.generator-responses { grid-template-columns: minmax(210px, .75fr) minmax(360px, 1.35fr); }
+
+.power-alerts {
+  display: grid;
+  gap: 8px;
+  padding: 15px 17px;
+  border: 2px solid #c84e45;
+  border-radius: 10px;
+  background: #fff4f2;
+  color: #9e261f;
+  font-weight: 700;
+}
+
+.power-alerts > b {
+  color: #7e1712;
+  font-size: 1.05rem;
+}
+
+.power-alerts span::before {
+  content: "!";
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #c84e45;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.power-node ul {
+  margin: 0;
+  padding-left: 22px;
+  line-height: 1.5;
+}
+
+.power-red {
+  color: #c22d25;
+}
+
+/* Oxygen loss / desaturation flow */
+.oxygen-flow-sheet { display: grid; gap: 16px; }
+.oxygen-callout { width: fit-content; padding: 4px 12px; font-size: 1.1rem; font-weight: 800; }
+.oxygen-flow-main { display: grid; justify-items: center; gap: 8px; padding: 18px; }
+.oxygen-node, .oxygen-branch-label, .oxygen-link-node { padding: 8px 14px; border: 0; border-radius: 0; background: transparent; color: #111; text-align: center; font-weight: 800; }
+.oxygen-node.primary { font-size: 1.25rem; }
+.oxygen-node.resuscitation { font-size: 1.2rem; }
+.oxygen-node.status { min-width: min(570px, 90%); font-size: 1.1rem; }
+.oxygen-arrow { color: #4e91cd; font-size: 1.6rem; font-weight: 900; line-height: 1; }
+.oxygen-branch-arrows { display: grid; grid-template-columns: 1fr 1fr; width: 76%; margin: -2px auto -16px; color: #4e91cd; font-size: 3rem; line-height: .8; }
+.oxygen-branch-arrows span:first-child { text-align: left; }
+.oxygen-branch-arrows span:last-child { text-align: right; }
+.oxygen-branches { display: grid; grid-template-columns: minmax(220px, 0.65fr) minmax(520px, 1.7fr); gap: 28px; width: 100%; padding-top: 18px; }
+.oxygen-branch { display: grid; justify-items: center; align-content: start; gap: 9px; }
+.oxygen-branch-label { width: min(330px, 90%); font-size: 1.12rem; }
+.oxygen-link-node { cursor: pointer; color: #0a4ba2; text-decoration: underline; text-underline-offset: 4px; }
+.oxygen-link-node:hover, .oxygen-link-node:focus-visible { color: #073577; }
+.oxygen-subbranches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: 100%; }
+.oxygen-response-card { padding: 10px 14px; }
+.oxygen-response-card h3 { margin: 0 0 10px; color: #111; font-size: 1.08rem; }
+.oxygen-response-card h3 span { white-space: nowrap; }
+.oxygen-response-card ul { margin: 0; padding-left: 21px; line-height: 1.5; }
+
+/* Workplace violence reference layout */
+.violence-sheet { display: grid; gap: 16px; }
+.violence-grid { display: grid; grid-template-columns: minmax(480px, 1.35fr) minmax(360px, 0.9fr); gap: 26px; align-items: start; }
+.violence-primary, .violence-guidance { display: grid; gap: 16px; }
+.violence-steps { display: grid; gap: 9px; padding: 4px 0; font-size: 1.07rem; }
+.violence-arrow { color: #4e91cd; text-align: center; font-size: 2rem; font-weight: 900; line-height: 0.8; }
+.violence-action-box { display: grid; gap: 18px; padding: 18px; border: 2px solid #17253b; border-radius: 0; background: #fff; }
+.violence-mantra { padding-bottom: 13px; border-bottom: 1px solid #c8d3df; text-align: center; font-size: 1.2rem; font-weight: 800; }
+.violence-mantra strong { color: #c63029; text-decoration: underline; }
+.violence-mantra em { color: #153d75; text-decoration: underline; }
+.violence-mantra span { color: #16894f; text-decoration: underline; }
+.violence-action { padding: 4px 12px; border-radius: 0; background: transparent; }
+.violence-action h3 { margin: 0 0 7px; }
+.violence-action ul { margin: 0; padding-left: 21px; line-height: 1.45; }
+.violence-action.run,
+.violence-action.hide,
+.violence-action.fight { border-left: 0; }
+.violence-panel { overflow: hidden; border: 1px solid #aebdd0; border-radius: 0; background: #fff; }
+.violence-panel > h3 { margin: 0; padding: 10px 14px; background: #86a5d8; color: #0d2340; }
+.deescalation-panel p { margin: 0; padding: 11px 14px; border-top: 1px solid #fff; background: #eef1f9; }
+.safety-panel > h3 { background: #17253b; color: #fff; }
+.violence-table { display: grid; grid-template-columns: minmax(110px, 0.42fr) 1fr; }
+.violence-table > div { padding: 12px 14px; border-bottom: 1px solid #fff; background: #e6e8ec; line-height: 1.35; }
+.violence-table .violence-term { background: #cdd1d7; font-size: 1.03rem; font-weight: 800; }
+
+/* Malignant hyperthermia transfer checklist */
+.mh-transfer-sheet { display: grid; gap: 18px; }
+.mh-transfer-sheet .vfvt-context-header p { max-width: none; }
+.mh-transfer-start { width: fit-content; }
+.mh-transfer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 46px; align-items: start; }
+.mh-transfer-column { display: grid; gap: 22px; }
+.mh-transfer-step h3 { margin: 0 0 8px; font-size: 1.22rem; }
+.mh-transfer-step ul { margin: 0; padding-left: 22px; line-height: 1.48; }
+.mh-transfer-step li { margin-bottom: 6px; }
+.mh-transfer-alert { color: #d31f18; font-weight: 800; }
+.mh-transfer-indent { margin: 8px 0 0 22%; font-weight: 600; line-height: 1.45; }
+.non-mh-primary-steps { display: grid; gap: 9px; }
+.non-mh-primary-steps h3 { margin: 0; }
+
 @media (max-width: 900px) {
+  .power-flow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .oxygen-branches,
+  .oxygen-subbranches {
+    grid-template-columns: 1fr;
+  }
+
+  .oxygen-branch-arrows { display: none; }
+
+  .violence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mh-transfer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
   .site-header {
     grid-template-columns: 1fr;
     padding: 22px;
@@ -2881,6 +3148,10 @@ h1 {
 }
 
 @media (max-width: 620px) {
+  .power-responses {
+    grid-template-columns: 1fr;
+  }
+
   .manual-detail-page,
   .wide-manual-page {
     grid-template-columns: 150px minmax(0, 1fr);
