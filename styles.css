@@ -211,27 +211,27 @@ h1 {
 }
 
 .home-panel {
-  background: linear-gradient(145deg, #5b95d6 0%, #437fbf 100%);
-  border-color: #4d89ca;
+  background: linear-gradient(145deg, #dceff8 0%, #c7e5f1 100%);
+  border-color: #a7cfdf;
   padding: 26px;
-  box-shadow: 0 14px 34px rgba(15, 71, 161, 0.12);
+  box-shadow: 0 14px 34px rgba(20, 92, 126, 0.1);
 }
 
 #home-results.home-panel {
-  background: linear-gradient(145deg, #164fa7 0%, #0f3e89 100%);
-  border-color: #164fa7;
+  background: linear-gradient(145deg, #c9e7f3 0%, #afd9e8 100%);
+  border-color: #8dc4d8;
 }
 
 .home-panel h2,
 .home-panel .muted {
-  color: #ffffff;
+  color: #123b5d;
 }
 
 .home-panel .protocol-card,
 .home-panel .category-card {
   background: #ffffff;
-  border-color: #c8d6e8;
-  box-shadow: 0 8px 20px rgba(12, 27, 51, 0.1);
+  border-color: #afd0df;
+  box-shadow: 0 8px 20px rgba(20, 92, 126, 0.09);
 }
 
 .home-page {
