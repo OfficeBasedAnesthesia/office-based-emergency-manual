@@ -7,6 +7,7 @@ const state = {
   route: "home",
   selectedCategory: "critical-events",
   selectedProtocolId: protocols.find((p) => p.id === "allergies-anaphylaxis")?.id ?? protocols[0]?.id ?? "",
+  categoryView: "categories",
   homeQuery: "",
   searchQuery: ""
 };
@@ -16,6 +17,7 @@ function syncHash() {
   params.set("route", state.route);
   if (state.selectedCategory) params.set("category", state.selectedCategory);
   if (state.selectedProtocolId) params.set("case", state.selectedProtocolId);
+  if (state.route === "categories") params.set("view", state.categoryView);
   if (state.homeQuery) params.set("homeQuery", state.homeQuery);
   if (state.searchQuery) params.set("searchQuery", state.searchQuery);
   history.replaceState(null, "", `#${params.toString()}`);
@@ -31,6 +33,9 @@ function loadHash() {
   if (category && protocols.some((protocol) => protocol.category === category)) state.selectedCategory = category;
   const selectedCase = params.get("case");
   if (selectedCase && protocols.some((protocol) => protocol.id === selectedCase)) state.selectedProtocolId = selectedCase;
+  const categoryView = params.get("view");
+  if (["categories", "protocols", "detail"].includes(categoryView)) state.categoryView = categoryView;
+  else if (route === "categories" && selectedCase) state.categoryView = "detail";
   state.homeQuery = params.get("homeQuery") || "";
   state.searchQuery = params.get("searchQuery") || "";
 }
@@ -119,6 +124,10 @@ function titleCaseCategory(category) {
     case "administrative": return "Administrative";
     default: return category;
   }
+}
+
+function isPhoneLayout() {
+  return window.matchMedia("(max-width: 620px)").matches;
 }
 
 function categoryColor(category) {
@@ -831,6 +840,7 @@ function bindProtocolCards(scope = app) {
       const protocol = selectedProtocol();
       state.selectedCategory = protocol.category;
       state.route = "categories";
+      state.categoryView = "detail";
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -880,6 +890,42 @@ function renderHome() {
 
 function renderCategories() {
   const categoryProtocols = protocols.filter((protocol) => protocol.category === state.selectedCategory);
+  if (isPhoneLayout() && state.categoryView === "categories") {
+    app.innerHTML = `
+      <div class="page-stack mobile-category-flow">
+        <section class="card mobile-picker-heading">
+          <h2>Categories</h2>
+          <p class="muted">Choose a category to see its emergency protocols.</p>
+        </section>
+        <div class="category-grid">
+          ${["critical-events","acls","pals","emergency","administrative"].map((category) => `
+            <article class="category-card" data-open-category="${category}">
+              <h3>${escapeHtml(titleCaseCategory(category))}</h3>
+              <p class="muted">${protocols.filter((protocol) => protocol.category === category).length} protocols</p>
+            </article>
+          `).join("")}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (isPhoneLayout() && state.categoryView === "protocols") {
+    app.innerHTML = `
+      <div class="page-stack mobile-category-flow">
+        <button class="mobile-back-button" type="button" data-category-back="categories">← All Categories</button>
+        <section class="card mobile-picker-heading">
+          <h2>${escapeHtml(titleCaseCategory(state.selectedCategory))}</h2>
+          <p class="muted">Choose the emergency protocol you need.</p>
+        </section>
+        <div class="protocol-grid">
+          ${categoryProtocols.map(renderProtocolCard).join("")}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   const isVfVt = state.selectedProtocolId === "acls-cardiac-arrest-vf-vt";
   const isWideManual = isVfVt || state.selectedProtocolId === "difficult-airway";
   app.innerHTML = `
@@ -905,6 +951,9 @@ function renderCategories() {
       </aside>
 
       <div class="page-stack">
+        <div class="mobile-protocol-toolbar">
+          <button class="mobile-back-button" type="button" data-category-back="protocols">← Back to ${escapeHtml(titleCaseCategory(state.selectedCategory))}</button>
+        </div>
         ${renderCaseContent(selectedProtocol())}
       </div>
     </div>
@@ -2241,8 +2290,20 @@ function render() {
     element.addEventListener("click", () => {
       state.selectedCategory = element.dataset.openCategory;
       state.route = "categories";
-      const first = protocols.find((protocol) => protocol.category === state.selectedCategory);
-      if (first) state.selectedProtocolId = first.id;
+      state.categoryView = isPhoneLayout() ? "protocols" : "detail";
+      if (!isPhoneLayout()) {
+        const first = protocols.find((protocol) => protocol.category === state.selectedCategory);
+        if (first) state.selectedProtocolId = first.id;
+      }
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  app.querySelectorAll("[data-category-back]").forEach((element) => {
+    element.addEventListener("click", () => {
+      state.route = "categories";
+      state.categoryView = element.dataset.categoryBack;
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -2251,6 +2312,7 @@ function render() {
   app.querySelectorAll("[data-route]").forEach((element) => {
     element.addEventListener("click", () => {
       state.route = element.dataset.route;
+      if (state.route === "categories") state.categoryView = "categories";
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -2260,6 +2322,7 @@ function render() {
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.route = button.dataset.route;
+    if (state.route === "categories") state.categoryView = "categories";
     render();
   });
 });

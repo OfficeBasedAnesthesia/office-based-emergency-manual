@@ -3154,8 +3154,18 @@ h1 {
 
   .manual-detail-page,
   .wide-manual-page {
-    grid-template-columns: 150px minmax(0, 1fr);
-    gap: 10px;
+    display: block;
+    width: 100%;
+  }
+
+  .manual-detail-page > .sidebar-stack { display: none; }
+
+  .manual-detail-page > .page-stack,
+  .manual-detail-page .anaphylaxis-sheet,
+  .manual-detail-page .vfvt-case-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .manual-detail-page .card,
@@ -3167,4 +3177,76 @@ h1 {
     padding: 7px 9px;
     font-size: 0.75rem;
   }
+
+  .anaphylaxis-grid,
+  .anaphylaxis-critical-body,
+  .arrest-critical-grid,
+  .pals-treatment-grid,
+  .embolism-layout,
+  .embolism-types,
+  .hypercapnia-layout,
+  .hyper-flow-branches,
+  .hypotension-layout,
+  .hypoxia-flow,
+  .last-layout,
+  .last-dose-stack,
+  .mh-layout,
+  .mh-differential-grid,
+  .spinal-layout,
+  .spinal-differential,
+  .postop-layout,
+  .postop-side,
+  .postop-diff-grid,
+  .mental-layout,
+  .mental-right-stack,
+  .mental-reversible-grid,
+  .generator-responses,
+  .violence-grid,
+  .mh-transfer-grid,
+  .fire-split {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .drug-row,
+  .anaphylaxis-sheet .drug-row,
+  .pals-brady-dose-row,
+  .arrest-row,
+  .manual-label-row,
+  .mh-dose-row,
+  .spinal-dose-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px;
+  }
+
+  .drug-label,
+  .anaphylaxis-sheet .drug-label { white-space: normal; }
+
+  .arrest-critical-grid > div + div,
+  .two-column-reference > div + div {
+    border-left: 0;
+    border-top: 1px solid #aeb8c5;
+  }
+
+  .two-column-reference { grid-template-columns: minmax(0, 1fr); }
+  .pals-brady-or, .pals-brady-indent, .mh-transfer-indent { margin-left: 0; }
+
+  .mobile-category-flow { gap: 12px; }
+  .mobile-picker-heading { padding: 16px; }
+  .mobile-picker-heading p { margin-bottom: 0; }
+  .mobile-protocol-toolbar { display: block; margin-bottom: -4px; }
+  .mobile-back-button {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #aebfd4;
+    border-radius: 9px;
+    background: #eef6ff;
+    color: #0f47a1;
+    font: inherit;
+    font-weight: 800;
+    text-align: left;
+  }
+}
+
+@media (min-width: 621px) {
+  .mobile-protocol-toolbar { display: none; }
 }
