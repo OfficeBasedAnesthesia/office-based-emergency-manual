@@ -2,6 +2,85 @@ const protocols = window.protocols || [];
 
 const app = document.querySelector("#app");
 const navButtons = [...document.querySelectorAll(".top-nav button")];
+const mobileNav = document.querySelector("#mobile-app-nav");
+const phonePreviewMode = new URLSearchParams(window.location.search).get("phonePreview") === "1";
+const FAVORITES_KEY = "oba-favorite-protocols";
+const RECENTS_KEY = "oba-recent-protocols";
+
+function enablePhonePreviewMode() {
+  if (!phonePreviewMode) return;
+
+  document.documentElement.classList.add("phone-preview-mode");
+  const forcedMobileRules = [];
+
+  for (const sheet of document.styleSheets) {
+    let rules;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      continue;
+    }
+
+    for (const rule of rules) {
+      if (rule instanceof CSSMediaRule && rule.conditionText.includes("max-width")) {
+        forcedMobileRules.push(...[...rule.cssRules].map((nestedRule) => nestedRule.cssText));
+      }
+    }
+  }
+
+  const style = document.createElement("style");
+  style.dataset.phonePreview = "true";
+  style.textContent = `
+    ${forcedMobileRules.join("\n")}
+    html.phone-preview-mode { background: #dfe7f1; }
+    html.phone-preview-mode body {
+      width: 390px;
+      max-width: calc(100vw - 24px);
+      min-height: calc(100vh - 24px);
+      margin: 12px auto;
+      overflow-x: hidden;
+      background: #fff;
+      border: 8px solid #17243a;
+      border-radius: 30px;
+      box-shadow: 0 18px 55px rgba(23, 36, 58, 0.28);
+    }
+    html.phone-preview-mode .site-shell {
+      width: 100%;
+      max-width: 100%;
+      padding: 0 0 28px;
+    }
+    html.phone-preview-mode .site-header {
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 14px;
+      padding: 16px;
+      border-left: 0;
+      border-right: 0;
+      border-radius: 20px 20px 0 0;
+    }
+    html.phone-preview-mode .brand-lockup { display: none; }
+    html.phone-preview-mode h1 { font-size: clamp(2rem, 10vw, 2.75rem); }
+    html.phone-preview-mode .header-copy { margin-top: 8px; font-size: 0.95rem; }
+    html.phone-preview-mode .top-nav {
+      display: none;
+    }
+    html.phone-preview-mode #app { width: 100%; padding: 12px; }
+    html.phone-preview-mode .category-grid,
+    html.phone-preview-mode .protocol-grid,
+    html.phone-preview-mode .search-grid {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    html.phone-preview-mode .site-footer { margin: 18px 12px 0; padding: 18px; }
+    html.phone-preview-mode .site-disclaimer { margin-left: 12px; margin-right: 12px; }
+    html.phone-preview-mode .mobile-app-nav {
+      right: auto;
+      left: 50%;
+      width: 390px;
+      max-width: calc(100vw - 24px);
+      transform: translateX(-50%);
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 const state = {
   route: "home",
@@ -11,6 +90,30 @@ const state = {
   homeQuery: "",
   searchQuery: ""
 };
+
+function storedProtocolIds(key) {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value.filter((id) => protocols.some((protocol) => protocol.id === id)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveProtocolIds(key, ids) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(ids));
+  } catch {}
+}
+
+function recordRecentProtocol(id) {
+  saveProtocolIds(RECENTS_KEY, [id, ...storedProtocolIds(RECENTS_KEY).filter((item) => item !== id)].slice(0, 5));
+}
+
+function toggleFavoriteProtocol(id) {
+  const favorites = storedProtocolIds(FAVORITES_KEY);
+  saveProtocolIds(FAVORITES_KEY, favorites.includes(id) ? favorites.filter((item) => item !== id) : [id, ...favorites]);
+}
 
 function syncHash() {
   const params = new URLSearchParams();
@@ -28,7 +131,7 @@ function loadHash() {
   if (!raw) return;
   const params = new URLSearchParams(raw);
   const route = params.get("route");
-  if (route && ["home", "categories", "search", "manual"].includes(route)) state.route = route;
+  if (route && ["home", "categories", "search", "favorites", "manual"].includes(route)) state.route = route;
   const category = params.get("category");
   if (category && protocols.some((protocol) => protocol.category === category)) state.selectedCategory = category;
   const selectedCase = params.get("case");
@@ -45,13 +148,35 @@ const stopWords = new Set([
 ]);
 
 const phraseSignals = [
-  { patterns: ["patient just desaturated", "patient desaturated", "desaturated", "desat", "oxygen dropping"], expansions: ["hypoxia", "desaturation", "low oxygen"] },
-  { patterns: ["patient is bleeding", "bleeding", "blood loss", "hemorrhaging"], expansions: ["hemorrhage", "bleeding", "blood loss"] },
-  { patterns: ["fire in the building", "there is a fire", "building fire", "smoke in building", "fire"], expansions: ["fire", "evacuation", "building fire", "emergency preparedness"] },
-  { patterns: ["someone has a knife", "knife", "weapon", "gun", "active shooter", "threat"], expansions: ["workplace violence", "weapon", "active threat", "security"] },
-  { patterns: ["cant ventilate", "can't ventilate", "cant intubate", "can't intubate", "airway obstruction"], expansions: ["difficult airway", "airway obstruction"] },
-  { patterns: ["rash", "hives", "swelling", "allergic reaction", "anaphylaxis"], expansions: ["anaphylaxis", "allergy", "rash", "urticaria"] },
-  { patterns: ["patient is cold", "cold patient", "cold", "hypothermic", "low temperature"], expansions: ["hypothermia", "temperature abnormal", "cold patient"] }
+  { patterns: ["unresponsive", "no pulse", "pulseless", "code blue", "cardiac arrest", "collapsed"], expansions: ["cardiac arrest", "cpr", "vf", "vt", "pea", "asystole"] },
+  { patterns: ["slow heart rate", "heart rate low", "low heart rate", "brady", "bradycardia"], expansions: ["bradycardia", "atropine", "pacing"] },
+  { patterns: ["fast heart rate", "heart racing", "rapid pulse", "palpitations", "tachy", "tachycardia"], expansions: ["tachycardia", "cardioversion", "adenosine"] },
+  { patterns: ["patient just desaturated", "patient desaturated", "desaturated", "desatting", "desat", "sats dropping", "oxygen dropping", "blue lips", "cyanotic", "low spo2"], expansions: ["hypoxia", "desaturation", "low oxygen", "oxygen saturation"] },
+  { patterns: ["oxygen tank empty", "no oxygen", "oxygen supply", "pipeline pressure", "low o2 pressure", "gas contamination"], expansions: ["loss of oxygen", "inadequate pressure", "backup oxygen cylinder"] },
+  { patterns: ["patient is bleeding", "bleeding", "blood loss", "hemorrhaging", "hemorrhage", "surgical bleeding"], expansions: ["hemorrhage", "bleeding", "blood loss", "massive transfusion"] },
+  { patterns: ["low blood pressure", "bp low", "pressure dropping", "hypotensive", "shock"], expansions: ["hypotension", "fluid bolus", "vasopressor"] },
+  { patterns: ["rash", "hives", "swelling", "allergic reaction", "allergy", "wheezing after medication", "anaphylaxis"], expansions: ["anaphylaxis", "allergy", "rash", "urticaria", "epinephrine"] },
+  { patterns: ["cant ventilate", "cannot ventilate", "can't ventilate", "cant intubate", "cannot intubate", "can't intubate", "airway obstruction", "difficult intubation", "no end tidal"], expansions: ["difficult airway", "airway obstruction", "cricothyrotomy"] },
+  { patterns: ["stridor", "laryngospasm", "post op airway", "postoperative airway", "airway swelling after surgery"], expansions: ["postoperative airway problem", "laryngospasm", "stridor"] },
+  { patterns: ["vomit", "vomiting", "regurgitation", "aspirated", "aspiration", "stomach contents"], expansions: ["aspiration", "suction", "bronchoscopy"] },
+  { patterns: ["high co2", "co2 rising", "etco2 rising", "elevated etco2", "hypercarbia", "hypercapnia"], expansions: ["hypercapnia", "carbon dioxide", "ventilation"] },
+  { patterns: ["local anesthetic toxicity", "local anesthetic overdose", "last", "metallic taste", "ringing ears", "tinnitus after block", "seizure after block", "intralipid"], expansions: ["last", "local anesthetic systemic toxicity", "lipid emulsion"] },
+  { patterns: ["malignant hyperthermia", "mh", "rigid", "rigidity", "masseter spasm", "temperature rising", "high fever during anesthesia", "dantrolene"], expansions: ["malignant hyperthermia", "mh", "dantrolene", "triggering agents"] },
+  { patterns: ["embolism", "air embolism", "fat embolism", "pulmonary embolism", "sudden etco2 drop"], expansions: ["embolism", "venous air", "pulmonary", "fat embolism"] },
+  { patterns: ["iv out", "iv infiltrated", "lost iv", "no iv", "cannot get access", "intraosseous", "io access"], expansions: ["loss of access", "vascular access", "iv", "io"] },
+  { patterns: ["confused", "confusion", "delirium", "not waking up", "slow to wake", "altered mental status", "memory problem"], expansions: ["mental status change", "postoperative cognitive dysfunction", "delirium"] },
+  { patterns: ["high spinal", "total spinal", "spinal complication", "spinal hypotension", "spinal anesthesia problem"], expansions: ["spinal anesthesia adverse events", "high spinal", "hypotension", "bradycardia"] },
+  { patterns: ["pacemaker", "icd", "aicd", "cied", "device malfunction", "magnet"], expansions: ["failure malfunction cied", "pacemaker", "defibrillator device"] },
+  { patterns: ["fire in the building", "there is a fire", "building fire", "smoke in building", "airway fire", "drapes on fire", "fire"], expansions: ["fire", "evacuation", "building fire", "emergency preparedness"] },
+  { patterns: ["lights out", "power outage", "electricity off", "machine lost power", "generator"], expansions: ["loss of power", "backup generator", "ventilator"] },
+  { patterns: ["evacuate", "evacuation", "leave building", "disaster", "emergency exit"], expansions: ["evacuation", "emergency preparedness"] },
+  { patterns: ["someone has a knife", "knife", "weapon", "gun", "active shooter", "violent patient", "assault", "threat"], expansions: ["workplace violence", "weapon", "active threat", "security", "run hide fight"] },
+  { patterns: ["transfer", "send to hospital", "ems", "ambulance", "911", "higher level of care"], expansions: ["transfer of care", "receiving healthcare facility", "emergency transport"] },
+  { patterns: ["epi", "adrenaline"], expansions: ["epinephrine", "anaphylaxis", "cardiac arrest"] },
+  { patterns: ["amio"], expansions: ["amiodarone", "vf", "vt", "tachycardia"] },
+  { patterns: ["patient is cold", "cold patient", "hypothermic", "low temperature"], expansions: ["hypothermia", "temperature abnormal", "cold patient"] },
+  { patterns: ["baby", "infant", "child", "kid", "pediatric", "peds"], expansions: ["pediatric", "pals", "child", "infant"] },
+  { patterns: ["adult", "grown up"], expansions: ["adult", "acls"] }
 ];
 
 function normalizeText(value) {
@@ -67,7 +192,15 @@ function stemTerm(term) {
     aspirated: "aspiration",
     stabbing: "stab",
     shooter: "shoot",
-    hypothermic: "hypothermia"
+    hypothermic: "hypothermia",
+    wheezing: "wheeze",
+    vomiting: "vomit",
+    confused: "confusion",
+    collapsed: "collapse",
+    pulseless: "pulse",
+    pediatric: "peds",
+    children: "child",
+    babies: "infant"
   };
   return stems[term] || term;
 }
@@ -127,7 +260,7 @@ function titleCaseCategory(category) {
 }
 
 function isPhoneLayout() {
-  return window.matchMedia("(max-width: 620px)").matches;
+  return phonePreviewMode || window.matchMedia("(max-width: 620px)").matches;
 }
 
 function categoryColor(category) {
@@ -142,7 +275,10 @@ function categoryColor(category) {
 
 function buildSearchText(protocol) {
   return [
+    protocol.id,
     protocol.title,
+    protocol.category,
+    protocol.population,
     protocol.summary,
     ...protocol.tags,
     ...protocol.whenToSuspect,
@@ -151,7 +287,10 @@ function buildSearchText(protocol) {
     ...protocol.monitoring,
     ...protocol.escalation,
     ...protocol.pearls,
+    ...protocol.medications,
+    ...protocol.equipment,
     ...protocol.rawChecklist,
+    JSON.stringify(protocol.rawSections || []),
     ...(protocol.searchAliases || [])
   ].join(" ").toLowerCase();
 }
@@ -841,6 +980,7 @@ function bindProtocolCards(scope = app) {
       state.selectedCategory = protocol.category;
       state.route = "categories";
       state.categoryView = "detail";
+      recordRecentProtocol(protocol.id);
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -865,11 +1005,44 @@ function renderSearchResults() {
   const matches = state.searchQuery ? rankProtocols(protocols, state.searchQuery) : protocols;
   const container = document.querySelector("#search-results");
   if (!container) return;
-  container.innerHTML = `<div class="protocol-grid">${matches.map(renderProtocolCard).join("")}</div>`;
+  container.innerHTML = `
+    <div class="search-results-heading">
+      <h2>${state.searchQuery ? `${matches.length} match${matches.length === 1 ? "" : "es"}` : "All protocols"}</h2>
+      ${state.searchQuery ? `<p class="muted">Results include related symptoms, abbreviations, medications and likely misspellings.</p>` : ""}
+    </div>
+    ${matches.length
+      ? `<div class="protocol-grid">${matches.map(renderProtocolCard).join("")}</div>`
+      : `<div class="search-empty"><h3>No strong match found</h3><p>Try describing what you see, such as “oxygen dropping,” “slow heart rate,” or “rash after medication.”</p></div>`}
+  `;
   bindProtocolCards(container);
 }
 
 function renderHome() {
+  if (isPhoneLayout()) {
+    const recentProtocols = storedProtocolIds(RECENTS_KEY)
+      .map((id) => protocols.find((protocol) => protocol.id === id))
+      .filter(Boolean);
+    app.innerHTML = `
+      <div class="page-stack mobile-home-page">
+        <section class="mobile-home-intro">
+          <h2>What do you need?</h2>
+          <p>Find the correct emergency protocol quickly.</p>
+        </section>
+        <div class="mobile-home-actions">
+          <button class="mobile-primary-action" type="button" data-route="search"><span>⌕</span><b>Search emergency</b><small>Symptoms, medications, or concerns</small></button>
+          <button class="mobile-primary-action" type="button" data-route="categories"><span>▦</span><b>Browse categories</b><small>Choose a clinical section</small></button>
+        </div>
+        <section class="mobile-recent-section">
+          <div class="mobile-section-heading"><h2>Recently viewed</h2>${recentProtocols.length ? "" : "<span>Protocols you open will appear here</span>"}</div>
+          ${recentProtocols.length
+            ? `<div class="protocol-grid">${recentProtocols.map(renderProtocolCard).join("")}</div>`
+            : `<button class="mobile-empty-action" type="button" data-route="categories">Browse protocols</button>`}
+        </section>
+      </div>
+    `;
+    return;
+  }
+
   app.innerHTML = `
     <div class="page-stack home-page">
       <section class="card home-panel">
@@ -886,6 +1059,23 @@ function renderHome() {
     </div>
   `;
 
+}
+
+function renderFavorites() {
+  const favoriteProtocols = storedProtocolIds(FAVORITES_KEY)
+    .map((id) => protocols.find((protocol) => protocol.id === id))
+    .filter(Boolean);
+  app.innerHTML = `
+    <div class="page-stack mobile-category-flow">
+      <section class="card mobile-picker-heading">
+        <h2>Favorites</h2>
+        <p class="muted">Your saved emergency protocols.</p>
+      </section>
+      ${favoriteProtocols.length
+        ? `<div class="protocol-grid">${favoriteProtocols.map(renderProtocolCard).join("")}</div>`
+        : `<section class="card mobile-empty-state"><h3>No favorites yet</h3><p class="muted">Open a protocol and tap “Add favorite.”</p><button class="button-link" type="button" data-route="categories">Browse protocols</button></section>`}
+    </div>
+  `;
 }
 
 function renderCategories() {
@@ -928,6 +1118,7 @@ function renderCategories() {
 
   const isVfVt = state.selectedProtocolId === "acls-cardiac-arrest-vf-vt";
   const isWideManual = isVfVt || state.selectedProtocolId === "difficult-airway";
+  recordRecentProtocol(state.selectedProtocolId);
   app.innerHTML = `
     <div class="page-columns manual-detail-page ${isWideManual ? "wide-manual-page" : ""} ${isVfVt ? "vfvt-page" : ""}">
       <aside class="sidebar-stack">
@@ -953,6 +1144,7 @@ function renderCategories() {
       <div class="page-stack">
         <div class="mobile-protocol-toolbar">
           <button class="mobile-back-button" type="button" data-category-back="protocols">← Back to ${escapeHtml(titleCaseCategory(state.selectedCategory))}</button>
+          <button class="mobile-favorite-button ${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "saved" : ""}" type="button" data-toggle-favorite="${escapeHtml(state.selectedProtocolId)}">${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "★ Saved" : "☆ Add favorite"}</button>
         </div>
         ${renderCaseContent(selectedProtocol())}
       </div>
@@ -2227,7 +2419,10 @@ function renderSearch() {
           <input class="search-bar" id="site-search" placeholder="Search case name, symptom, medication, or concern..." value="${escapeHtml(state.searchQuery)}" />
           <button class="button-link search-submit" type="submit">Search</button>
         </form>
-        <p class="muted">Try natural phrases like “patient just desaturated”, “patient is bleeding”, or “someone has a knife”.</p>
+        <p class="muted">Use symptoms, abbreviations, medication names, diagnoses, or a natural-language description.</p>
+        <div class="search-example-chips" aria-label="Search examples">
+          ${["oxygen dropping", "slow heart rate", "rash after medication", "can't intubate", "local anesthetic toxicity", "power outage"].map((example) => `<button type="button" data-search-example="${escapeHtml(example)}">${escapeHtml(example)}</button>`).join("")}
+        </div>
       </section>
       <section class="card" id="search-results">
       </section>
@@ -2240,6 +2435,20 @@ function renderSearch() {
     syncHash();
     renderSearchResults();
   });
+  document.querySelector("#site-search")?.addEventListener("input", (event) => {
+    state.searchQuery = event.target.value;
+    syncHash();
+    renderSearchResults();
+  });
+  document.querySelectorAll("[data-search-example]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.searchQuery = button.dataset.searchExample;
+      const input = document.querySelector("#site-search");
+      if (input) input.value = state.searchQuery;
+      syncHash();
+      renderSearchResults();
+    });
+  });
 }
 
 function renderManual() {
@@ -2249,7 +2458,7 @@ function renderManual() {
         <h2>Office-Based Emergency Manual</h2>
         <p class="muted">Open the original PDF manual or continue browsing the structured case library on the web.</p>
         <div class="manual-actions">
-          <a class="button-link" href="./assets/office-based-emergency-manual.pdf" target="_blank" rel="noreferrer">Open Original PDF</a>
+          <a class="button-link" href="./pdf-viewer.html">Open Original PDF</a>
           <button class="button-link" data-route="categories">Browse Case Library</button>
         </div>
       </section>
@@ -2282,9 +2491,17 @@ function render() {
   if (state.route === "home") renderHome();
   if (state.route === "categories") renderCategories();
   if (state.route === "search") renderSearch();
+  if (state.route === "favorites") renderFavorites();
   if (state.route === "manual") renderManual();
 
   bindProtocolCards(app);
+
+  app.querySelectorAll("[data-toggle-favorite]").forEach((element) => {
+    element.addEventListener("click", () => {
+      toggleFavoriteProtocol(element.dataset.toggleFavorite);
+      render();
+    });
+  });
 
   app.querySelectorAll("[data-open-category]").forEach((element) => {
     element.addEventListener("click", () => {
@@ -2317,6 +2534,31 @@ function render() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
+
+  updateMobileNav();
+}
+
+function updateMobileNav() {
+  if (!mobileNav) return;
+  mobileNav.querySelectorAll("[data-mobile-route]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.mobileRoute === state.route);
+  });
+  const backButton = mobileNav.querySelector("[data-mobile-action='back']");
+  if (backButton) backButton.disabled = state.route === "home";
+}
+
+function goBackInApp() {
+  if (state.route === "categories" && state.categoryView === "detail") {
+    state.categoryView = "protocols";
+  } else if (state.route === "categories" && state.categoryView === "protocols") {
+    state.categoryView = "categories";
+  } else if (state.route === "categories" && state.categoryView === "categories") {
+    state.route = "home";
+  } else {
+    state.route = "home";
+  }
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 navButtons.forEach((button) => {
@@ -2327,10 +2569,22 @@ navButtons.forEach((button) => {
   });
 });
 
+mobileNav?.querySelectorAll("[data-mobile-route]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.route = button.dataset.mobileRoute;
+    if (state.route === "categories") state.categoryView = "categories";
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
+mobileNav?.querySelector("[data-mobile-action='back']")?.addEventListener("click", goBackInApp);
+
 window.addEventListener("hashchange", () => {
   loadHash();
   render();
 });
 
+enablePhonePreviewMode();
 loadHash();
 render();
