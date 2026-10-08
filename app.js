@@ -57,7 +57,7 @@ function enablePhonePreviewMode() {
       border-right: 0;
       border-radius: 20px 20px 0 0;
     }
-    html.phone-preview-mode .brand-lockup { display: none; }
+    html.phone-preview-mode .brand-lockup { display: flex; }
     html.phone-preview-mode h1 { font-size: clamp(2rem, 10vw, 2.75rem); }
     html.phone-preview-mode .header-copy { margin-top: 8px; font-size: 0.95rem; }
     html.phone-preview-mode .top-nav {
@@ -69,7 +69,6 @@ function enablePhonePreviewMode() {
     html.phone-preview-mode .search-grid {
       grid-template-columns: minmax(0, 1fr) !important;
     }
-    html.phone-preview-mode .site-footer { margin: 18px 12px 0; padding: 18px; }
     html.phone-preview-mode .site-disclaimer { margin-left: 12px; margin-right: 12px; }
     html.phone-preview-mode .mobile-app-nav {
       right: auto;
@@ -1032,10 +1031,16 @@ function renderHome() {
           <button class="mobile-primary-action" type="button" data-route="search"><span>⌕</span><b>Search emergency</b><small>Symptoms, medications, or concerns</small></button>
           <button class="mobile-primary-action" type="button" data-route="categories"><span>▦</span><b>Browse categories</b><small>Choose a clinical section</small></button>
         </div>
-        <section class="mobile-recent-section">
-          <div class="mobile-section-heading"><h2>Recently viewed</h2>${recentProtocols.length ? "" : "<span>Protocols you open will appear here</span>"}</div>
+        <section class="mobile-history-section">
+          <div class="mobile-section-heading"><h2>History</h2>${recentProtocols.length ? "" : "<span>Protocols you open will appear here</span>"}</div>
           ${recentProtocols.length
-            ? `<div class="protocol-grid">${recentProtocols.map(renderProtocolCard).join("")}</div>`
+            ? `<div class="mobile-history-list">${recentProtocols.map((protocol) => `
+                <button class="mobile-history-item" type="button" data-protocol-id="${escapeHtml(protocol.id)}">
+                  <span class="mobile-history-category">${escapeHtml(titleCaseCategory(protocol.category))}</span>
+                  <strong>${escapeHtml(protocol.title)}</strong>
+                  <span class="mobile-history-arrow" aria-hidden="true">›</span>
+                </button>
+              `).join("")}</div>`
             : `<button class="mobile-empty-action" type="button" data-route="categories">Browse protocols</button>`}
         </section>
       </div>
@@ -2569,16 +2574,20 @@ navButtons.forEach((button) => {
   });
 });
 
-mobileNav?.querySelectorAll("[data-mobile-route]").forEach((button) => {
-  button.addEventListener("click", () => {
-    state.route = button.dataset.mobileRoute;
-    if (state.route === "categories") state.categoryView = "categories";
-    render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+mobileNav?.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button || button.disabled) return;
+  if (button.dataset.mobileAction === "back") {
+    goBackInApp();
+    return;
+  }
+  if (!button.dataset.mobileRoute) return;
+  state.route = button.dataset.mobileRoute;
+  if (state.route === "categories") state.categoryView = "categories";
+  syncHash();
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
-
-mobileNav?.querySelector("[data-mobile-action='back']")?.addEventListener("click", goBackInApp);
 
 window.addEventListener("hashchange", () => {
   loadHash();

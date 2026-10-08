@@ -12,7 +12,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/app-icon-192.png" />
-    <link rel="stylesheet" href="./styles.css?v=108" />
+    <link rel="stylesheet" href="./styles.css?v=109" />
   </head>
   <body>
     <div class="site-shell">
@@ -35,15 +35,6 @@
 
       <main id="app"></main>
 
-      <footer class="site-footer">
-        <div class="footer-brand">
-          <img src="https://isobs.org/wp-content/uploads/2022/01/cropped-ISOBS_logoX300-180x104.png" alt="ISOBS" class="mgb-logo mgb-logo-footer" />
-        </div>
-        <div>
-          <p>Office-Based Emergency Manual</p>
-          <p class="muted">Structured crisis guidance for office-based anesthesia.</p>
-        </div>
-      </footer>
       <p class="muted site-disclaimer">
         Disclaimer: This manual is intended to support, not replace, clinical knowledge, training, and judgment.
         Clinicians should use their own decision-making for each patient. Deviation from the guidance presented
@@ -52,13 +43,14 @@
     </div>
 
     <nav class="mobile-app-nav" id="mobile-app-nav" aria-label="App navigation">
-      <button type="button" data-mobile-route="home"><span>⌂</span>Home</button>
       <button type="button" data-mobile-action="back"><span>‹</span>Back</button>
+      <button type="button" data-mobile-route="home"><span>⌂</span>Home</button>
+      <button type="button" data-mobile-route="manual"><span>▤</span>PDF</button>
       <button type="button" data-mobile-route="favorites"><span>☆</span>Favorites</button>
     </nav>
 
     <script src="./data.js?v=16"></script>
-    <script src="./app.js?v=101"></script>
+    <script src="./app.js?v=103"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {

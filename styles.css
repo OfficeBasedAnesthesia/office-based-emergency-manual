@@ -2866,46 +2866,12 @@ h1 {
   text-decoration: none;
 }
 
-.site-footer {
-  margin-top: 48px;
-  padding: 36px 28px;
-  display: grid;
-  gap: 12px;
-  border-top: 0;
-  border-radius: 18px;
-  background: var(--accent-dark);
-  color: #ffffff;
-}
-
-.footer-brand {
-  display: flex;
-  align-items: flex-start;
-  width: fit-content;
-  padding: 14px 18px;
-  border-radius: 16px;
-  background: #ffffff;
-}
-
-.mgb-logo-footer {
-  width: min(200px, 100%);
-}
-
 .site-disclaimer {
   max-width: 980px;
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 14px 0 0;
   color: #ced9e8;
-}
-
-.site-footer .muted {
-  color: #ced9e8;
-}
-
-.site-footer p:first-child {
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
 }
 
 /* Loss of power decision flow */
@@ -3183,6 +3149,15 @@ h1 {
   body { padding-bottom: 76px; }
   .top-nav { display: none; }
   .site-header { padding: 14px 16px; }
+  .site-header .brand-lockup {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 12px;
+    background: #fff;
+  }
+  .site-header .brand-lockup .mgb-logo { width: 112px; }
   .site-header h1 { font-size: 2rem; }
   .site-header .header-copy { display: none; }
 
@@ -3193,7 +3168,7 @@ h1 {
     bottom: 0;
     left: 0;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 2px;
     padding: 7px max(7px, env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(7px, env(safe-area-inset-left));
     border-top: 1px solid #bfd0e4;
@@ -3241,9 +3216,45 @@ h1 {
   .mobile-primary-action span { grid-row: 1 / 3; font-size: 1.8rem; color: #0f47a1; }
   .mobile-primary-action b { font-size: 1.05rem; }
   .mobile-primary-action small { color: #52657a; font-size: 0.78rem; }
-  .mobile-recent-section { display: grid; gap: 10px; }
+  .mobile-history-section {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #d7e1ec;
+  }
   .mobile-section-heading h2 { margin: 0; font-size: 1.25rem; }
   .mobile-section-heading span { color: #52657a; font-size: 0.82rem; }
+  .mobile-history-list { display: grid; gap: 7px; }
+  .mobile-history-item {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    padding: 11px 38px 11px 12px;
+    border: 1px solid #c5d3e3;
+    border-radius: 9px;
+    background: #fff;
+    color: #102b4e;
+    text-align: left;
+    font: inherit;
+  }
+  .mobile-history-category {
+    color: #52657a;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .mobile-history-item strong { font-size: 0.9rem; line-height: 1.25; }
+  .mobile-history-arrow {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    color: #0f47a1;
+    font-size: 1.5rem;
+    transform: translateY(-50%);
+  }
   .mobile-empty-action {
     padding: 14px;
     border: 1px dashed #9db5d0;
