@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">OBA Emergency Manual</title>
+  <desc id="desc">A navy app icon with the letters OBA and a medical cross.</desc>
+  <rect width="512" height="512" rx="104" fill="#102b4e"/>
+  <rect x="52" y="52" width="408" height="408" rx="76" fill="none" stroke="#63a2d8" stroke-width="12"/>
+  <path d="M390 92h30v46h46v30h-46v46h-30v-46h-46v-30h46z" fill="#ffffff"/>
+  <text x="256" y="298" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="142" font-weight="800">OBA</text>
+  <text x="256" y="368" text-anchor="middle" fill="#9fd1f2" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" letter-spacing="3">EMERGENCY</text>
+  <text x="256" y="410" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="600" letter-spacing="5">MANUAL</text>
+</svg>

@@ -1,0 +1,25 @@
+{
+  "name": "Office-Based Anesthesia Emergency Manual",
+  "short_name": "OBA Manual",
+  "description": "Rapid crisis guidance for office-based anesthesia.",
+  "start_url": "./#route=home",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7fbff",
+  "theme_color": "#102b4e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./assets/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

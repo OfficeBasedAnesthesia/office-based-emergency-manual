@@ -6,6 +6,14 @@ const mobileNav = document.querySelector("#mobile-app-nav");
 const phonePreviewMode = new URLSearchParams(window.location.search).get("phonePreview") === "1";
 const FAVORITES_KEY = "oba-favorite-protocols";
 const RECENTS_KEY = "oba-recent-protocols";
+const navigationHistory = [];
+
+// Favorites are an app convenience. Keep the public website navigation focused
+// on Back, Home, and the PDF manual—even when the website is viewed on a phone.
+if (!phonePreviewMode && mobileNav) {
+  mobileNav.querySelector('[data-mobile-route="favorites"]')?.remove();
+  mobileNav.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
+}
 
 function enablePhonePreviewMode() {
   if (!phonePreviewMode) return;
@@ -89,6 +97,45 @@ const state = {
   homeQuery: "",
   searchQuery: ""
 };
+
+function navigationSnapshot() {
+  return {
+    route: state.route,
+    selectedCategory: state.selectedCategory,
+    selectedProtocolId: state.selectedProtocolId,
+    categoryView: state.categoryView,
+    homeQuery: state.homeQuery,
+    searchQuery: state.searchQuery
+  };
+}
+
+function navigationSnapshotLabel(snapshot) {
+  if (snapshot.route === "categories" && snapshot.categoryView === "detail") {
+    return protocols.find((protocol) => protocol.id === snapshot.selectedProtocolId)?.title || "previous checklist";
+  }
+  if (snapshot.route === "categories" && snapshot.categoryView === "protocols") {
+    return titleCaseCategory(snapshot.selectedCategory);
+  }
+  if (snapshot.route === "categories") return "Categories";
+  if (snapshot.route === "search") return "Search results";
+  if (snapshot.route === "favorites") return "Favorites";
+  if (snapshot.route === "manual") return "Manual";
+  return "Home";
+}
+
+function rememberCurrentLocation() {
+  navigationHistory.push(navigationSnapshot());
+  if (navigationHistory.length > 50) navigationHistory.shift();
+}
+
+function restorePreviousLocation() {
+  const previous = navigationHistory.pop();
+  if (!previous) return false;
+  Object.assign(state, previous);
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  return true;
+}
 
 function storedProtocolIds(key) {
   try {
@@ -297,37 +344,64 @@ function buildSearchText(protocol) {
 function rankProtocols(items, query) {
   const normalized = normalizeText(query);
   if (!normalized) return items;
-  const expandedTerms = expandQuery(normalized);
-  const baseTerms = normalizeText(normalized).split(" ").filter(Boolean).map(stemTerm);
-
-  return [...items]
+  const baseTerms = normalized.split(" ").filter(Boolean).filter((term) => !stopWords.has(term)).map(stemTerm);
+  const expandedTerms = expandQuery(normalized).filter((term) => term !== normalized && !baseTerms.includes(term));
+  const ranked = [...items]
     .map((protocol) => {
       const haystack = buildSearchText(protocol);
       const haystackTokens = [...new Set(normalizeText(haystack).split(" ").filter(Boolean).map(stemTerm))];
-      const titleTokens = normalizeText(protocol.title).split(" ").filter(Boolean).map(stemTerm);
-      const tagTokens = protocol.tags.flatMap((tag) => normalizeText(tag).split(" ").filter(Boolean).map(stemTerm));
-      const aliasTokens = (protocol.searchAliases || []).flatMap((alias) => normalizeText(alias).split(" ").filter(Boolean).map(stemTerm));
+      const title = normalizeText(protocol.title);
+      const tags = normalizeText(protocol.tags.join(" "));
+      const aliases = normalizeText((protocol.searchAliases || []).join(" "));
+      const summary = normalizeText(protocol.summary || "");
+      const priorityText = `${title} ${tags} ${aliases}`;
+      const priorityTokens = priorityText.split(" ").filter(Boolean).map(stemTerm);
       let score = 0;
+      let expansionMatches = 0;
 
+      if (title.includes(normalized)) score += 70;
+      if (aliases.includes(normalized)) score += 60;
+      if (tags.includes(normalized)) score += 50;
+      if (summary.includes(normalized)) score += 35;
+      if (haystack.includes(normalized)) score += 20;
+
+      const baseMatches = baseTerms.map((term) => {
+        const exactPriority = priorityText.includes(term);
+        const fuzzyPriority = !exactPriority && priorityTokens.some((candidate) => fuzzyTermMatch(term, candidate));
+        const exactAnywhere = haystack.includes(term);
+        const fuzzyAnywhere = !exactAnywhere && haystackTokens.some((candidate) => fuzzyTermMatch(term, candidate));
+        if (exactPriority) score += 16;
+        else if (fuzzyPriority) score += 12;
+        else if (exactAnywhere) score += 5;
+        else if (fuzzyAnywhere) score += 2;
+        return exactPriority || fuzzyPriority || exactAnywhere || fuzzyAnywhere;
+      });
+
+      // Related concepts help discover the right protocol, but only when they
+      // occur in concise descriptive fields—not incidentally in a long checklist.
       for (const term of expandedTerms) {
-        if (normalizeText(protocol.title).includes(term)) score += 10;
-        else if (titleTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 9;
-        if (protocol.tags.some((tag) => normalizeText(tag).includes(term))) score += 7;
-        else if (tagTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 6;
-        if ((protocol.searchAliases || []).some((alias) => normalizeText(alias).includes(term))) score += 8;
-        else if (aliasTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 7;
-        if (haystack.includes(term)) score += 3;
-        if (!haystack.includes(term) && haystackTokens.some((candidate) => fuzzyTermMatch(term, candidate))) score += 2;
+        if (title.includes(term) || aliases.includes(term)) {
+          score += 14;
+          expansionMatches += 1;
+        } else if (tags.includes(term)) {
+          score += 10;
+          expansionMatches += 1;
+        } else if (summary.includes(term)) {
+          score += 6;
+          expansionMatches += 1;
+        }
       }
 
-      if (haystack.includes(normalized)) score += 10;
-      if (baseTerms.every((term) => haystack.includes(term) || haystackTokens.some((candidate) => fuzzyTermMatch(term, candidate)))) score += 8;
-
-      return { protocol, score };
+      const directPhraseMatch = title.includes(normalized) || tags.includes(normalized) || aliases.includes(normalized) || summary.includes(normalized);
+      const allBaseTermsMatch = baseTerms.length > 0 && baseMatches.every(Boolean);
+      return { protocol, score, eligible: directPhraseMatch || allBaseTermsMatch || expansionMatches > 0 };
     })
-    .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score || a.protocol.title.localeCompare(b.protocol.title))
-    .map((entry) => entry.protocol);
+    .filter((entry) => entry.eligible && entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.protocol.title.localeCompare(b.protocol.title));
+
+  if (!ranked.length) return [];
+  const relevanceFloor = Math.max(12, ranked[0].score * 0.24);
+  return ranked.filter((entry) => entry.score >= relevanceFloor).slice(0, 12).map((entry) => entry.protocol);
 }
 
 function getSectionTone(title) {
@@ -974,6 +1048,10 @@ function renderProtocolCard(protocol) {
 function bindProtocolCards(scope = app) {
   scope.querySelectorAll("[data-open-protocol]").forEach((element) => {
     element.addEventListener("click", () => {
+      const openingCurrentDetail = state.route === "categories"
+        && state.categoryView === "detail"
+        && state.selectedProtocolId === element.dataset.openProtocol;
+      if (!openingCurrentDetail) rememberCurrentLocation();
       state.selectedProtocolId = element.dataset.openProtocol;
       const protocol = selectedProtocol();
       state.selectedCategory = protocol.category;
@@ -1053,7 +1131,7 @@ function renderHome() {
       <section class="card home-panel">
         <h2>Browse Categories</h2>
         <div class="category-grid">
-          ${["critical-events","acls","pals","emergency","administrative"].map((category) => `
+          ${["acls","pals","emergency","critical-events","administrative"].map((category) => `
             <article class="category-card" data-open-category="${category}">
               <h3>${escapeHtml(titleCaseCategory(category))}</h3>
               <p class="muted">${protocols.filter((protocol) => protocol.category === category).length} protocols</p>
@@ -1093,7 +1171,7 @@ function renderCategories() {
           <p class="muted">Choose a category to see its emergency protocols.</p>
         </section>
         <div class="category-grid">
-          ${["critical-events","acls","pals","emergency","administrative"].map((category) => `
+          ${["acls","pals","emergency","critical-events","administrative"].map((category) => `
             <article class="category-card" data-open-category="${category}">
               <h3>${escapeHtml(titleCaseCategory(category))}</h3>
               <p class="muted">${protocols.filter((protocol) => protocol.category === category).length} protocols</p>
@@ -1123,6 +1201,13 @@ function renderCategories() {
 
   const isVfVt = state.selectedProtocolId === "acls-cardiac-arrest-vf-vt";
   const isWideManual = isVfVt || state.selectedProtocolId === "difficult-airway";
+  const previousLocation = navigationHistory[navigationHistory.length - 1];
+  const detailBackLabel = previousLocation
+    ? navigationSnapshotLabel(previousLocation)
+    : (isPhoneLayout() ? titleCaseCategory(state.selectedCategory) : "Home");
+  const detailBackAttribute = previousLocation
+    ? "data-history-back"
+    : (isPhoneLayout() ? 'data-category-back="protocols"' : 'data-route="home"');
   recordRecentProtocol(state.selectedProtocolId);
   app.innerHTML = `
     <div class="page-columns manual-detail-page ${isWideManual ? "wide-manual-page" : ""} ${isVfVt ? "vfvt-page" : ""}">
@@ -1130,7 +1215,7 @@ function renderCategories() {
         <section class="card">
           <h2>Categories</h2>
           <div class="pill-wrap">
-            ${["critical-events","acls","pals","emergency","administrative"].map((category) => `
+            ${["acls","pals","emergency","critical-events","administrative"].map((category) => `
               <button class="pill ${state.selectedCategory === category ? "active" : ""}" data-open-category="${category}">
                 ${escapeHtml(titleCaseCategory(category))}
               </button>
@@ -1147,8 +1232,8 @@ function renderCategories() {
       </aside>
 
       <div class="page-stack">
-        <div class="mobile-protocol-toolbar">
-          <button class="mobile-back-button" type="button" data-category-back="protocols">← Back to ${escapeHtml(titleCaseCategory(state.selectedCategory))}</button>
+        <div class="protocol-navigation-toolbar">
+          <button class="protocol-history-back" type="button" ${detailBackAttribute}>← Back to ${escapeHtml(detailBackLabel)}</button>
           <button class="mobile-favorite-button ${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "saved" : ""}" type="button" data-toggle-favorite="${escapeHtml(state.selectedProtocolId)}">${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "★ Saved" : "☆ Add favorite"}</button>
         </div>
         ${renderCaseContent(selectedProtocol())}
@@ -2510,6 +2595,7 @@ function render() {
 
   app.querySelectorAll("[data-open-category]").forEach((element) => {
     element.addEventListener("click", () => {
+      rememberCurrentLocation();
       state.selectedCategory = element.dataset.openCategory;
       state.route = "categories";
       state.categoryView = isPhoneLayout() ? "protocols" : "detail";
@@ -2531,8 +2617,15 @@ function render() {
     });
   });
 
+  app.querySelectorAll("[data-history-back]").forEach((element) => {
+    element.addEventListener("click", restorePreviousLocation);
+  });
+
   app.querySelectorAll("[data-route]").forEach((element) => {
     element.addEventListener("click", () => {
+      if (state.route !== element.dataset.route || (element.dataset.route === "categories" && state.categoryView !== "categories")) {
+        rememberCurrentLocation();
+      }
       state.route = element.dataset.route;
       if (state.route === "categories") state.categoryView = "categories";
       render();
@@ -2549,10 +2642,11 @@ function updateMobileNav() {
     button.classList.toggle("active", button.dataset.mobileRoute === state.route);
   });
   const backButton = mobileNav.querySelector("[data-mobile-action='back']");
-  if (backButton) backButton.disabled = state.route === "home";
+  if (backButton) backButton.disabled = state.route === "home" && navigationHistory.length === 0;
 }
 
 function goBackInApp() {
+  if (restorePreviousLocation()) return;
   if (state.route === "categories" && state.categoryView === "detail") {
     state.categoryView = "protocols";
   } else if (state.route === "categories" && state.categoryView === "protocols") {
@@ -2568,6 +2662,9 @@ function goBackInApp() {
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
+    if (state.route !== button.dataset.route || (button.dataset.route === "categories" && state.categoryView !== "categories")) {
+      rememberCurrentLocation();
+    }
     state.route = button.dataset.route;
     if (state.route === "categories") state.categoryView = "categories";
     render();
@@ -2582,6 +2679,9 @@ mobileNav?.addEventListener("click", (event) => {
     return;
   }
   if (!button.dataset.mobileRoute) return;
+  if (state.route !== button.dataset.mobileRoute || (button.dataset.mobileRoute === "categories" && state.categoryView !== "categories")) {
+    rememberCurrentLocation();
+  }
   state.route = button.dataset.mobileRoute;
   if (state.route === "categories") state.categoryView = "categories";
   syncHash();
@@ -2590,6 +2690,7 @@ mobileNav?.addEventListener("click", (event) => {
 });
 
 window.addEventListener("hashchange", () => {
+  navigationHistory.length = 0;
   loadHash();
   render();
 });
