@@ -1234,7 +1234,7 @@ function renderCategories() {
       <div class="page-stack">
         <div class="protocol-navigation-toolbar">
           <button class="protocol-history-back" type="button" ${detailBackAttribute}>← Back to ${escapeHtml(detailBackLabel)}</button>
-          <button class="mobile-favorite-button ${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "saved" : ""}" type="button" data-toggle-favorite="${escapeHtml(state.selectedProtocolId)}">${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "★ Saved" : "☆ Add favorite"}</button>
+          ${phonePreviewMode ? `<button class="mobile-favorite-button ${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "saved" : ""}" type="button" data-toggle-favorite="${escapeHtml(state.selectedProtocolId)}">${storedProtocolIds(FAVORITES_KEY).includes(state.selectedProtocolId) ? "★ Saved" : "☆ Add favorite"}</button>` : ""}
         </div>
         ${renderCaseContent(selectedProtocol())}
       </div>

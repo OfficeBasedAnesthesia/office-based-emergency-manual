@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "OBA Emergency Manual",
+    "slug": "oba-emergency-manual",
+    "version": "0.1.0",
+    "scheme": "oba-emergency-manual",
+    "icon": "./assets/app-icon.png",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.officebasedanesthesia.emergencymanual",
+      "buildNumber": "1",
+      "icon": "./assets/app-icon.png",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.officebasedanesthesia.emergencymanual",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app-icon.png",
+        "backgroundColor": "#f3efe5"
+      }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-status-bar"
+    ]
+  }
+}
