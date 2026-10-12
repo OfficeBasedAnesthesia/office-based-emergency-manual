@@ -2569,9 +2569,8 @@ function renderManual() {
     <div class="page-stack">
       <section class="card">
         <h2>Office-Based Emergency Manual</h2>
-        <p class="muted">Open or download the original PDF manual.</p>
+        <p class="muted">Download the original PDF manual.</p>
         <div class="manual-actions">
-          <a class="button-link" href="./pdf-viewer.html">Open Original PDF</a>
           <a class="button-link" href="./assets/office-based-emergency-manual.pdf" download>Download PDF</a>
         </div>
       </section>
