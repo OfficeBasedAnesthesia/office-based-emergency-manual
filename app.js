@@ -2569,26 +2569,10 @@ function renderManual() {
     <div class="page-stack">
       <section class="card">
         <h2>Office-Based Emergency Manual</h2>
-        <p class="muted">Open the original PDF manual or continue browsing the structured case library on the web.</p>
+        <p class="muted">Open or download the original PDF manual.</p>
         <div class="manual-actions">
           <a class="button-link" href="./pdf-viewer.html">Open Original PDF</a>
-          <button class="button-link" data-route="categories">Browse Case Library</button>
-        </div>
-      </section>
-      <section class="card">
-        <h2>Included Sections</h2>
-        <div class="pill-wrap">
-          ${[
-            ["Critical Events", "critical-events"],
-            ["ACLS", "acls"],
-            ["PALS", "pals"],
-            ["Emergency", "emergency"],
-            ["Administrative", "administrative"]
-          ].map(([label, category]) => `
-            <button class="pill" data-open-category="${category}">
-              ${escapeHtml(label)}
-            </button>
-          `).join("")}
+          <a class="button-link" href="./assets/office-based-emergency-manual.pdf" download>Download PDF</a>
         </div>
       </section>
     </div>
