@@ -1,9 +1,12 @@
 # Office-Based Emergency Manual
 
-This repository contains both versions of the project:
+This repository contains both versions of the project, with separate preview directories and URLs:
 
-- **Website:** the files in the repository root are published through GitHub Pages at <https://officebasedanesthesia.github.io/office-based-emergency-manual/>.
-- **Phone app:** the Expo/React Native project is in [`mobile-app/`](./mobile-app/).
+- **Website preview:** [`website/`](./website/) is published at <https://officebasedanesthesia.github.io/office-based-emergency-manual/website/>.
+- **App preview:** [`app/`](./app/) is published at <https://officebasedanesthesia.github.io/office-based-emergency-manual/app/>.
+- **Phone app source:** the Expo/React Native project is in [`mobile-app/`](./mobile-app/).
+
+Shared website code and content remain in the repository root so both previews use the same current manual without maintaining duplicate data.
 
 The phone app displays the published manual in an app-focused interface. Website information updates therefore flow into the app automatically after the website is published. App-only behavior, native loading, and App Store configuration live inside `mobile-app/`.
 
@@ -30,4 +33,3 @@ Then open <http://127.0.0.1:4173/>.
 ## Phone app development
 
 See [`mobile-app/README.md`](./mobile-app/README.md).
-

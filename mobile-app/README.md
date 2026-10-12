@@ -1,6 +1,6 @@
 # OBA Emergency Manual Phone App
 
-This folder contains the Expo/React Native phone app. The app loads the live Office-Based Emergency Manual website with app-only navigation and Favorites enabled.
+This folder contains the Expo/React Native phone app. The app loads the dedicated live app path at <https://officebasedanesthesia.github.io/office-based-emergency-manual/app/>, with app-only navigation and Favorites enabled.
 
 ## Run the app
 
@@ -41,4 +41,3 @@ Manual content and most interface styling are maintained by the website files in
 ## Collaboration workflow
 
 Before editing, pull the newest `main` branch. Work on a separate branch and open a pull request rather than pushing competing edits directly to `main`.
-

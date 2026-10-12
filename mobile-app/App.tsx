@@ -13,9 +13,8 @@ import { WebView, type WebViewNavigation } from "react-native-webview";
 import { mobileWebCss } from "./mobileWebCss";
 
 const SITE_ORIGIN = "https://officebasedanesthesia.github.io";
-// The query flag enables app-only controls (such as Favorites) while the
-// regular public website keeps its simpler website navigation.
-const SITE_URL = `${SITE_ORIGIN}/office-based-emergency-manual/?phonePreview=1`;
+// The app has its own stable GitHub Pages path, separate from the website.
+const SITE_URL = `${SITE_ORIGIN}/office-based-emergency-manual/app/`;
 const MOBILE_STYLE_INJECTION = `
   (function () {
     var style = document.getElementById("oba-mobile-app-styles");

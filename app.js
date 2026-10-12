@@ -3,7 +3,8 @@ const protocols = window.protocols || [];
 const app = document.querySelector("#app");
 const navButtons = [...document.querySelectorAll(".top-nav button")];
 const mobileNav = document.querySelector("#mobile-app-nav");
-const phonePreviewMode = new URLSearchParams(window.location.search).get("phonePreview") === "1";
+const appDirectoryMode = window.location.pathname.replace(/\/+$/, "").endsWith("/app");
+const phonePreviewMode = new URLSearchParams(window.location.search).get("phonePreview") === "1" || appDirectoryMode;
 const FAVORITES_KEY = "oba-favorite-protocols";
 const RECENTS_KEY = "oba-recent-protocols";
 const navigationHistory = [];
@@ -169,7 +170,7 @@ function syncHash() {
   if (state.route === "categories") params.set("view", state.categoryView);
   if (state.homeQuery) params.set("homeQuery", state.homeQuery);
   if (state.searchQuery) params.set("searchQuery", state.searchQuery);
-  history.replaceState(null, "", `#${params.toString()}`);
+  history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${params.toString()}`);
 }
 
 function loadHash() {
@@ -306,7 +307,7 @@ function titleCaseCategory(category) {
 }
 
 function isPhoneLayout() {
-  return phonePreviewMode || window.matchMedia("(max-width: 620px)").matches;
+  return phonePreviewMode;
 }
 
 function categoryColor(category) {

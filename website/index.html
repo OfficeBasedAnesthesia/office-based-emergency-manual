@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <base href="../" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102b4e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="OBA Manual" />
+    <meta name="description" content="Rapid crisis guidance for office-based anesthesia." />
+    <title>Office-Based Emergency Manual — Website</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/app-icon-192.png" />
+    <link rel="stylesheet" href="./styles.css?v=110" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="brand-lockup">
+          <img src="https://isobs.org/wp-content/uploads/2022/01/cropped-ISOBS_logoX300-180x104.png" alt="ISOBS" class="mgb-logo" />
+        </div>
+        <div>
+          <p class="eyebrow">Office-Based Anesthesia</p>
+          <h1>Emergency Manual</h1>
+          <p class="header-copy">Rapid crisis guidance, category browsing, case search, and PDF access in one shareable site.</p>
+        </div>
+        <nav class="top-nav">
+          <button data-route="home">Home</button>
+          <button data-route="search">Search</button>
+          <button data-route="manual">Manual</button>
+        </nav>
+      </header>
+
+      <main id="app"></main>
+
+      <p class="muted site-disclaimer">
+        Disclaimer: This manual is intended to support, not replace, clinical knowledge, training, and judgment.
+        Clinicians should use their own decision-making for each patient. Deviation from the guidance presented
+        here may be appropriate based on the clinical situation, available resources, and patient-specific factors.
+      </p>
+    </div>
+
+    <nav class="mobile-app-nav" id="mobile-app-nav" aria-label="App navigation">
+      <button type="button" data-mobile-action="back"><span>‹</span>Back</button>
+      <button type="button" data-mobile-route="home"><span>⌂</span>Home</button>
+      <button type="button" data-mobile-route="manual"><span>▤</span>PDF</button>
+      <button type="button" data-mobile-route="favorites"><span>☆</span>Favorites</button>
+    </nav>
+
+    <script src="./data.js?v=16"></script>
+    <script src="./app.js?v=109"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+        });
+      }
+    </script>
+  </body>
+  </html>
