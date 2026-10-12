@@ -3,11 +3,33 @@ const protocols = window.protocols || [];
 const app = document.querySelector("#app");
 const navButtons = [...document.querySelectorAll(".top-nav button")];
 const mobileNav = document.querySelector("#mobile-app-nav");
-const appDirectoryMode = window.location.pathname.replace(/\/+$/, "").endsWith("/app");
+const currentDirectory = window.location.pathname.replace(/\/+$/, "");
+const appDirectoryMode = currentDirectory.endsWith("/app");
+const websiteDirectoryMode = currentDirectory.endsWith("/website");
 const phonePreviewMode = new URLSearchParams(window.location.search).get("phonePreview") === "1" || appDirectoryMode;
 const FAVORITES_KEY = "oba-favorite-protocols";
 const RECENTS_KEY = "oba-recent-protocols";
 const navigationHistory = [];
+
+function lockWebsiteLayout() {
+  if (!websiteDirectoryMode) return;
+  document.documentElement.classList.add("website-only-mode");
+  for (const sheet of document.styleSheets) {
+    let rules;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      continue;
+    }
+    for (const rule of rules) {
+      if (rule instanceof CSSMediaRule && rule.conditionText.includes("max-width")) {
+        rule.media.mediaText = "not all";
+      }
+    }
+  }
+}
+
+lockWebsiteLayout();
 
 // Favorites are an app convenience. Keep the public website navigation focused
 // on Back, Home, and the PDF manual—even when the website is viewed on a phone.
