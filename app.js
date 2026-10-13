@@ -1125,11 +1125,13 @@ function renderHome() {
     app.innerHTML = `
       <div class="page-stack mobile-home-page">
         <section class="mobile-home-intro">
-          <h2>What do you need?</h2>
           <p>Find the correct emergency protocol quickly.</p>
         </section>
         <div class="mobile-home-actions">
-          <button class="mobile-primary-action" type="button" data-route="search"><span>⌕</span><b>Search emergency</b><small>Symptoms, medications, or concerns</small></button>
+          <form class="mobile-home-search" id="mobile-home-search-form" role="search">
+            <input id="mobile-home-search" type="search" autocomplete="off" aria-label="Search emergency protocols" placeholder="Search emergency protocols" value="${escapeHtml(state.homeQuery)}" />
+            <button type="submit">Search</button>
+          </form>
           <button class="mobile-primary-action" type="button" data-route="categories"><span>▦</span><b>Browse categories</b><small>Choose a clinical section</small></button>
         </div>
         <section class="mobile-history-section">
@@ -1146,6 +1148,22 @@ function renderHome() {
         </section>
       </div>
     `;
+    const homeSearch = document.querySelector("#mobile-home-search");
+    homeSearch?.addEventListener("input", (event) => {
+      state.homeQuery = event.target.value;
+    });
+    document.querySelector("#mobile-home-search-form")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      state.homeQuery = homeSearch?.value.trim() ?? "";
+      state.searchQuery = state.homeQuery;
+      if (!state.searchQuery) {
+        homeSearch?.focus();
+        return;
+      }
+      state.route = "search";
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
     return;
   }
 

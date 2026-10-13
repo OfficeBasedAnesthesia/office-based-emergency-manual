@@ -3245,6 +3245,38 @@ h1 {
   .mobile-home-intro h2 { margin: 0; font-size: 1.7rem; }
   .mobile-home-intro p { margin: 5px 0 0; color: #52657a; }
   .mobile-home-actions { display: grid; gap: 10px; }
+  .mobile-home-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+  }
+  .mobile-home-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 15px 14px;
+    border: 1px solid #aebfd4;
+    border-radius: 12px;
+    outline: 0;
+    background: #fff;
+    color: #102b4e;
+    font: inherit;
+    font-size: 0.95rem;
+  }
+  .mobile-home-search input::placeholder { color: #52657a; opacity: 1; }
+  .mobile-home-search input:focus { border-color: #0f47a1; box-shadow: 0 0 0 3px rgba(15, 71, 161, 0.12); }
+  .mobile-home-search button {
+    min-height: 50px;
+    padding: 0 16px;
+    border: 1px solid #0f47a1;
+    border-radius: 12px;
+    background: #0f47a1;
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+  }
   .mobile-primary-action {
     display: grid;
     grid-template-columns: 42px 1fr;
