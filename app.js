@@ -76,6 +76,9 @@ function enablePhonePreviewMode() {
       box-shadow: 0 18px 55px rgba(23, 36, 58, 0.28);
     }
     html.phone-preview-mode .site-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100dvh - 116px - env(safe-area-inset-bottom));
       width: 100%;
       max-width: 100%;
       padding: 0 0 28px;
@@ -89,18 +92,44 @@ function enablePhonePreviewMode() {
       border-radius: 20px 20px 0 0;
     }
     html.phone-preview-mode .brand-lockup { display: flex; }
-    html.phone-preview-mode h1 { font-size: clamp(2rem, 10vw, 2.75rem); }
+    html.phone-preview-mode .site-header .brand-lockup .mgb-logo { width: 136px; max-width: 100%; height: auto; }
+    html.phone-preview-mode .site-header > div:nth-child(2) {
+      min-width: 0;
+      container-type: inline-size;
+      text-align: center;
+    }
+    html.phone-preview-mode .site-header .eyebrow,
+    html.phone-preview-mode .site-header h1 {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: clamp(0.8rem, 6.4cqi, 1.3rem);
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--ink);
+      white-space: nowrap;
+    }
     html.phone-preview-mode .header-copy { margin-top: 8px; font-size: 0.95rem; }
     html.phone-preview-mode .top-nav {
       display: none;
     }
     html.phone-preview-mode #app { width: 100%; padding: 12px; }
+    html.phone-preview-mode #app:has(.mobile-home-page) { flex: 1; display: flex; align-items: center; padding-top: 28px; padding-bottom: 28px; }
+    html.phone-preview-mode .mobile-home-page { width: 100%; }
+    html.phone-preview-mode .mobile-home-intro { text-align: center; }
+    html.phone-preview-mode .mobile-home-search { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+    html.phone-preview-mode .mobile-home-search button { min-width: 0; min-height: 56px; padding: 0 14px; font-size: 0.9rem; }
+    html.phone-preview-mode .mobile-home-search input { padding-left: 8px; padding-right: 4px; font-size: clamp(0.7rem, 3.85vw, 0.95rem); }
+    html.phone-preview-mode .mobile-home-search input::placeholder { letter-spacing: -0.025em; }
+    html.phone-preview-mode .mobile-home-actions { gap: 18px; }
+
     html.phone-preview-mode .category-grid,
     html.phone-preview-mode .protocol-grid,
     html.phone-preview-mode .search-grid {
       grid-template-columns: minmax(0, 1fr) !important;
     }
-    html.phone-preview-mode .site-disclaimer { margin-left: 12px; margin-right: 12px; }
+    html.phone-preview-mode .site-disclaimer { margin-left: 12px; margin-right: 12px; margin-top: auto; padding-top: 24px; font-size: 0.8rem; }
     html.phone-preview-mode .mobile-app-nav {
       right: auto;
       left: 50%;
@@ -1119,9 +1148,6 @@ function renderSearchResults() {
 
 function renderHome() {
   if (isPhoneLayout()) {
-    const recentProtocols = storedProtocolIds(RECENTS_KEY)
-      .map((id) => protocols.find((protocol) => protocol.id === id))
-      .filter(Boolean);
     app.innerHTML = `
       <div class="page-stack mobile-home-page">
         <section class="mobile-home-intro">
@@ -1134,18 +1160,6 @@ function renderHome() {
           </form>
           <button class="mobile-primary-action" type="button" data-route="categories"><span>▦</span><b>Browse categories</b><small>Choose a clinical section</small></button>
         </div>
-        <section class="mobile-history-section">
-          <div class="mobile-section-heading"><h2>History</h2>${recentProtocols.length ? "" : "<span>Protocols you open will appear here</span>"}</div>
-          ${recentProtocols.length
-            ? `<div class="mobile-history-list">${recentProtocols.map((protocol) => `
-                <button class="mobile-history-item" type="button" data-protocol-id="${escapeHtml(protocol.id)}">
-                  <span class="mobile-history-category">${escapeHtml(titleCaseCategory(protocol.category))}</span>
-                  <strong>${escapeHtml(protocol.title)}</strong>
-                  <span class="mobile-history-arrow" aria-hidden="true">›</span>
-                </button>
-              `).join("")}</div>`
-            : `<button class="mobile-empty-action" type="button" data-route="categories">Browse protocols</button>`}
-        </section>
       </div>
     `;
     const homeSearch = document.querySelector("#mobile-home-search");
