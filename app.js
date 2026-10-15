@@ -85,14 +85,14 @@ function enablePhonePreviewMode() {
     }
     html.phone-preview-mode .site-header {
       grid-template-columns: minmax(0, 1fr) !important;
-      gap: 14px;
-      padding: 16px;
+      gap: 10px;
+      padding: 12px 16px;
       border-left: 0;
       border-right: 0;
       border-radius: 20px 20px 0 0;
     }
-    html.phone-preview-mode .brand-lockup { display: flex; }
-    html.phone-preview-mode .site-header .brand-lockup .mgb-logo { width: 136px; max-width: 100%; height: auto; }
+    html.phone-preview-mode .brand-lockup { display: flex; padding-top: 3px; padding-bottom: 3px; }
+    html.phone-preview-mode .site-header .brand-lockup .mgb-logo { width: 120px; max-width: 100%; height: auto; }
     html.phone-preview-mode .site-header > div:nth-child(2) {
       min-width: 0;
       container-type: inline-size;
@@ -115,14 +115,15 @@ function enablePhonePreviewMode() {
       display: none;
     }
     html.phone-preview-mode #app { width: 100%; padding: 12px; }
-    html.phone-preview-mode #app:has(.mobile-home-page) { flex: 1; display: flex; align-items: center; padding-top: 28px; padding-bottom: 28px; }
-    html.phone-preview-mode .mobile-home-page { width: 100%; }
+    html.phone-preview-mode #app:has(.mobile-home-page) { flex: 1; display: flex; align-items: center; padding-top: 36px; padding-bottom: 36px; }
+    html.phone-preview-mode .mobile-home-page { width: 100%; gap: 24px; }
     html.phone-preview-mode .mobile-home-intro { text-align: center; }
     html.phone-preview-mode .mobile-home-search { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
     html.phone-preview-mode .mobile-home-search button { min-width: 0; min-height: 56px; padding: 0 14px; font-size: 0.9rem; }
     html.phone-preview-mode .mobile-home-search input { padding-left: 8px; padding-right: 4px; font-size: clamp(0.7rem, 3.85vw, 0.95rem); }
     html.phone-preview-mode .mobile-home-search input::placeholder { letter-spacing: -0.025em; }
-    html.phone-preview-mode .mobile-home-actions { gap: 18px; }
+    html.phone-preview-mode .mobile-home-actions { gap: 22px; }
+    html.phone-preview-mode .mobile-primary-action { padding-top: 20px; padding-bottom: 20px; }
 
     html.phone-preview-mode .category-grid,
     html.phone-preview-mode .protocol-grid,

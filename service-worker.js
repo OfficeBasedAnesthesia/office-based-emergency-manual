@@ -1,11 +1,11 @@
-const CACHE_NAME = "oba-emergency-manual-v26";
+const CACHE_NAME = "oba-emergency-manual-v27";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./pdf-viewer.html",
   "./styles.css?v=114",
   "./data.js?v=16",
-  "./app.js?v=115",
+  "./app.js?v=116",
   "./manifest.webmanifest",
   "./assets/app-icon.svg",
   "./assets/app-icon-192.png",
