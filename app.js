@@ -623,6 +623,24 @@ function renderSlideChecklist(items, formatText = escapeHtml) {
 }
 
 function renderSlideSection(section, protocolId = "") {
+  const html = renderSlideSectionContent(section, protocolId);
+  const collapsibleTitles = [
+    "Critical CHANGES",
+    "DRUG DOSES and treatments ADULT",
+    "Common causes",
+    "DRUG DOSES and treatments PEDS"
+  ];
+  if (!appDirectoryMode || protocolId !== "allergies-anaphylaxis" || !collapsibleTitles.includes(section.title)) return html;
+
+  // Native disclosure controls support touch, keyboard, and screen readers.
+  return html
+    .replace('<section class="', '<details open class="app-collapsible ')
+    .replace(/<div class="(section-header|anaphylaxis-critical-header)">([^<]*)<\/div>/,
+      '<summary class="$1">$2</summary>')
+    .replace(/<\/section>\s*$/, '</details>');
+}
+
+function renderSlideSectionContent(section, protocolId = "") {
   const tone = getSectionTone(section.title);
   const extraClass =
     tone === "drug" ? "anaphylaxis-drug-card" :
