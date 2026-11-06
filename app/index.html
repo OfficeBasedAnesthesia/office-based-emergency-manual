@@ -15,6 +15,31 @@
     <link rel="apple-touch-icon" href="./assets/app-icon-192.png" />
     <link rel="stylesheet" href="./styles.css?v=114" />
     <link rel="stylesheet" href="./profile.css?v=8" />
+    <style>
+      .app-collapsible > summary {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        list-style: none;
+      }
+      .app-collapsible > summary::-webkit-details-marker { display: none; }
+      .app-collapsible > summary::after {
+        content: "+";
+        flex-shrink: 0;
+        font-size: 1.3em;
+        line-height: 1;
+      }
+      .app-collapsible[open] > summary::after { content: "−"; }
+      .app-collapsible > summary:focus-visible {
+        outline: 3px solid #1674e8;
+        outline-offset: 3px;
+      }
+      @media print {
+        .app-collapsible > summary::after { display: none; }
+      }
+    </style>
   </head>
   <body>
     <div class="site-shell">
@@ -50,7 +75,7 @@
     </nav>
 
     <script src="./data.js?v=16"></script>
-    <script src="./app.js?v=116"></script>
+    <script src="./app.js?v=117"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
