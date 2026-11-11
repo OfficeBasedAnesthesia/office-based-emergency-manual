@@ -117,6 +117,9 @@ function enablePhonePreviewMode() {
     html.phone-preview-mode #app { width: 100%; padding: 12px; }
     html.phone-preview-mode #app:has(.mobile-home-page) { flex: 1; display: flex; align-items: center; padding-top: 36px; padding-bottom: 36px; }
     html.phone-preview-mode .mobile-home-page { width: 100%; gap: 24px; }
+    html.phone-preview-mode .category-page-heading { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 4px 2px 8px; }
+    html.phone-preview-mode .category-page-heading h2 { margin: 0; font-size: 1.6rem; letter-spacing: -0.02em; }
+    html.phone-preview-mode .category-page-heading p { margin: 8px 0 0; line-height: 1.45; }
     html.phone-preview-mode .mobile-home-intro { text-align: center; }
     html.phone-preview-mode .mobile-home-search { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
     html.phone-preview-mode .mobile-home-search button { min-width: 0; min-height: 56px; padding: 0 14px; font-size: 0.9rem; }
@@ -1240,10 +1243,10 @@ function renderCategories() {
   if (isPhoneLayout() && state.categoryView === "categories") {
     app.innerHTML = `
       <div class="page-stack mobile-category-flow">
-        <section class="card mobile-picker-heading">
+        <header class="category-page-heading">
           <h2>Categories</h2>
           <p class="muted">Choose a category to see its emergency protocols.</p>
-        </section>
+        </header>
         <div class="category-grid">
           ${["acls","pals","emergency","critical-events","administrative"].map((category) => `
             <article class="category-card" data-open-category="${category}">
