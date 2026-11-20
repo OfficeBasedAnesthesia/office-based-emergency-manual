@@ -2571,7 +2571,7 @@ function renderNonMhTransferCase(protocol) {
         </div>
         <div class="mh-transfer-column">
           <section class="mh-transfer-step"><h3>6 Implement Emergent non-MH Facility Transfer plan</h3><ul><li>Collect patient data: vital signs, temperature, ETCO<sub>2</sub> trends, labs, ECG</li></ul></section>
-          <section class="mh-transfer-step"><h3>7 Notify <span class="mh-transfer-alert">Receiving Healthcare Facility (RHCF)</span>: coordinate communication</h3><ul><li>Direct personal communication is ideal between:<div class="mh-transfer-indent">Anesthesia Care Provider at OBA facility<br>Receiving Physician (critical care, primary, or emergency medicine providers at RHCF)</div></li><li>Coordination of anticipated post-resuscitation needs is ESSENTIAL between Anesthesia Care Provider and Receiving Physician</li></ul></section>
+          <section class="mh-transfer-step"><h3>7 Notify <span class="mh-transfer-alert">Receiving Healthcare Facility (RHCF)</span>: coordinate communication</h3><ul><li>Direct personal communication is ideal between:<ul><li><strong>Anesthesia Care Provider at OBA facility</strong></li><li><strong>Receiving Physician (critical care, primary, or emergency medicine providers at RHCF)</strong></li></ul></li><li>Coordination of anticipated post-resuscitation needs is ESSENTIAL between Anesthesia Care Provider and Receiving Physician</li></ul></section>
         </div>
       </div>
     </section>
