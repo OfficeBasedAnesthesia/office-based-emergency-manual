@@ -994,7 +994,7 @@ function renderSlideCase(protocol) {
               </div>
             </div>
           ` : `
-            <div class="manual-section-kicker">${escapeHtml(getManualSectionLabel(protocol))} <span>• ${escapeHtml(getPopulationLabel(protocol))}</span></div>
+            ${protocol.id === "evacuation" ? "" : `<div class="manual-section-kicker">${escapeHtml(getManualSectionLabel(protocol))} <span>• ${escapeHtml(getPopulationLabel(protocol))}</span></div>`}
             <h2>${escapeHtml(protocol.title)}</h2>
           `}
           <p>${escapeHtml(suspectLine)}</p>
