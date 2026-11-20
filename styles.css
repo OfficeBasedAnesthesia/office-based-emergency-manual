@@ -3498,3 +3498,32 @@ h1 {
         line-height: 1.25;
         overflow-wrap: break-word;
       }
+
+/* Hypotension website: compact doses above a full-width differential. */
+html:not(.phone-preview-mode) .hypotension-layout { gap: 16px 20px; }
+html:not(.phone-preview-mode) .hypotension-dose-stack { gap: 8px; }
+html:not(.phone-preview-mode) .hypotension-dose-box h3 {
+  padding: 7px 10px;
+  font-size: 1rem;
+  line-height: 1.15;
+}
+html:not(.phone-preview-mode) .hypotension-dose-body { padding: 6px 10px; }
+html:not(.phone-preview-mode) .hypotension-dose-body .drug-row {
+  padding: 3px 0;
+  gap: 6px;
+  font-size: .9rem;
+  line-height: 1.2;
+}
+html:not(.phone-preview-mode) .hypotension-bp-head { font-size: 1rem; }
+html:not(.phone-preview-mode) .hypotension-bp-row { font-size: .9rem; }
+html:not(.phone-preview-mode) .hypotension-bp-head span,
+html:not(.phone-preview-mode) .hypotension-bp-row span,
+html:not(.phone-preview-mode) .hypotension-bp-row b { padding: 6px 8px; }
+.hypotension-layout > .hypotension-differential { grid-column: 1 / -1; }
+html:not(.phone-preview-mode) .hypotension-differential-groups {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 20px;
+  align-items: start;
+}
+html:not(.phone-preview-mode) .hypotension-differential-group { min-width: 0; }
+html:not(.phone-preview-mode) .hypotension-differential-group ul { padding-left: 20px; }
