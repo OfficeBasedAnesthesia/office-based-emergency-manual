@@ -1911,7 +1911,6 @@ function renderAspirationCase(protocol) {
         <div class="anaphylaxis-start-badge">START</div>
         <div class="anaphylaxis-main-box">${renderSlideChecklist(checklist)}</div>
         <section class="aspiration-airway-box">
-          <div class="aspiration-airway-arrow" aria-hidden="true">→</div>
           <div>
             <h3>Airway management strategies:</h3>
             <ul>
