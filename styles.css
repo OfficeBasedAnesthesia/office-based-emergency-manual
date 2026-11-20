@@ -3471,3 +3471,30 @@ h1 {
   }
   .mobile-favorite-button.saved { background: #fff7d6; color: #765800; }
 }
+
+
+/* Shared compact navigation for every desktop website protocol page. */
+      /* Keep navigation compact while giving the manual more reading space. */
+      html:not(.phone-preview-mode) .page-columns {
+        grid-template-columns: 210px minmax(0, 1fr);
+        column-gap: 20px;
+      }
+      html:not(.phone-preview-mode) .sidebar-stack { min-width: 0; gap: 10px; }
+      html:not(.phone-preview-mode) .sidebar-stack .card { padding: 10px; min-width: 0; }
+      html:not(.phone-preview-mode) .sidebar-stack h2 { font-size: 1rem; }
+      html:not(.phone-preview-mode) .sidebar-stack .pill-wrap { gap: 5px; }
+      html:not(.phone-preview-mode) .sidebar-stack .pill {
+        padding: 5px 7px;
+        font-size: .75rem;
+        white-space: normal;
+      }
+      html:not(.phone-preview-mode) .sidebar-stack .protocol-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+      }
+      html:not(.phone-preview-mode) .sidebar-stack .protocol-card { padding: 8px; }
+      html:not(.phone-preview-mode) .sidebar-stack .protocol-card h3 {
+        font-size: .8rem;
+        line-height: 1.25;
+        overflow-wrap: break-word;
+      }
