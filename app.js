@@ -1479,19 +1479,7 @@ function renderHypotensionCase(protocol) {
         <div class="hypotension-main">
           <div class="anaphylaxis-start-badge">START</div>
           <div class="anaphylaxis-main-box">${renderSlideChecklist(checklist, linkifyHypotensionChecklist)}</div>
-          ${differential.length ? `
-            <section class="hypotension-differential">
-              <h3>8 Differential Diagnosis</h3>
-              <div class="hypotension-differential-groups">
-                ${differentialGroups.map((group) => `
-                  <section class="hypotension-differential-group">
-                    <h4>${escapeHtml(group.title)}</h4>
-                    <ul>${group.items.map((item) => `<li>${linkifyHypotensionChecklist(item)}</li>`).join("")}</ul>
-                  </section>
-                `).join("")}
-              </div>
-            </section>
-          ` : ""}
+
         </div>
 
         <aside class="hypotension-dose-stack">
@@ -1506,6 +1494,19 @@ function renderHypotensionCase(protocol) {
             <div class="hypotension-bp-row"><span>&gt;10 yr</span><b>&lt;90</b></div>
           </section>
         </aside>
+          ${differential.length ? `
+            <section class="hypotension-differential">
+              <h3>8 Differential Diagnosis</h3>
+              <div class="hypotension-differential-groups">
+                ${differentialGroups.map((group) => `
+                  <section class="hypotension-differential-group">
+                    <h4>${escapeHtml(group.title)}</h4>
+                    <ul>${group.items.map((item) => `<li>${linkifyHypotensionChecklist(item)}</li>`).join("")}</ul>
+                  </section>
+                `).join("")}
+              </div>
+            </section>
+          ` : ""}
       </div>
     </section>
   `;
