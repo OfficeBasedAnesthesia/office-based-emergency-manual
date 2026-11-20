@@ -739,7 +739,7 @@ window.protocols = [
   },
   {
     "id": "pals-cardiac-arrest-asystole-pea",
-    "title": "Cardiac arrest - asystole/PEA",
+    "title": "Cardiac arrest - PEA/asystole",
     "category": "pals",
     "population": "pediatric",
     "tags": [
