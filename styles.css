@@ -3544,3 +3544,6 @@ html:not(.phone-preview-mode) .asystole-title-row h2 {
   letter-spacing: -.03em;
   line-height: 1.2;
 }
+
+/* Protocol pages begin directly with the title. */
+html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
