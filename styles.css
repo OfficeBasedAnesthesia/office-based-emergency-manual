@@ -1676,7 +1676,7 @@ h1 {
 .aspiration-layout { display: grid; gap: 12px; }
 .aspiration-airway-box {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
   width: min(720px, 100%);
@@ -1684,13 +1684,6 @@ h1 {
   padding: 18px 22px;
   border: 2px solid #aaa;
   background: #fff;
-}
-.aspiration-airway-arrow {
-  color: #3977cf;
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: .8;
-  -webkit-text-stroke: 1px #1f437c;
 }
 .aspiration-airway-box h3 { margin: 0 0 8px; font-size: 1.45rem; }
 .aspiration-airway-box ul { margin: 0; padding-left: 24px; }
