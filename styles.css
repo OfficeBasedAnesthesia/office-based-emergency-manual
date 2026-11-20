@@ -1413,7 +1413,8 @@ h1 {
 .hypoxia-check-chain {
   grid-column: 1;
   display: grid;
-  justify-items: start;
+  justify-items: center;
+  text-align: center;
   align-content: start;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -1438,6 +1439,7 @@ h1 {
 }
 
 .hypoxia-check-item {
+  width: 100%;
   padding: 0 12px;
   line-height: 1.25;
 }
@@ -3531,3 +3533,5 @@ html:not(.phone-preview-mode) .hypotension-differential-group {
   margin-bottom: 14px;
 }
 html:not(.phone-preview-mode) .hypotension-differential-group ul { padding-left: 20px; }
+
+.hypoxia-check-chain h3 + .hypoxia-check-item { padding-top: 12px; }

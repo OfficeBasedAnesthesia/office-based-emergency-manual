@@ -1586,7 +1586,7 @@ function renderHypoxiaCase(protocol) {
         <section class="hypoxia-check-chain">
           <h3>Check for</h3>
           ${["Pulse, BP, PIP", "ET tube position", "Pulse oximeter placement", "Circuit integrity: disconnection, bends, holes"].map((item, index) => `
-            ${index ? `<div class="hypoxia-down-arrow">↓</div>` : `<div class="hypoxia-down-arrow">↓</div>`}
+            ${index ? `<div class="hypoxia-down-arrow">↓</div>` : ""}
             <div class="hypoxia-check-item">${escapeHtml(item)}</div>
           `).join("")}
         </section>
