@@ -3521,9 +3521,13 @@ html:not(.phone-preview-mode) .hypotension-bp-row span,
 html:not(.phone-preview-mode) .hypotension-bp-row b { padding: 6px 8px; }
 .hypotension-layout > .hypotension-differential { grid-column: 1 / -1; }
 html:not(.phone-preview-mode) .hypotension-differential-groups {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px 20px;
-  align-items: start;
+  display: block;
+  column-count: 3;
+  column-gap: 20px;
 }
-html:not(.phone-preview-mode) .hypotension-differential-group { min-width: 0; }
+html:not(.phone-preview-mode) .hypotension-differential-group {
+  min-width: 0;
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
 html:not(.phone-preview-mode) .hypotension-differential-group ul { padding-left: 20px; }
