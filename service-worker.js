@@ -1,4 +1,4 @@
-const CACHE_NAME = "oba-emergency-manual-v29";
+const CACHE_NAME = "oba-emergency-manual-v30";
 const APP_SHELL = [
   "./",
   "./index.html",

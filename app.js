@@ -2645,6 +2645,7 @@ function render() {
   if (state.route === "manual") renderManual();
 
   bindProtocolCards(app);
+  if (phonePreviewMode) addSectionTabs(app);
 
   app.querySelectorAll("[data-toggle-favorite]").forEach((element) => {
     element.addEventListener("click", () => {
@@ -2694,6 +2695,84 @@ function render() {
   });
 
   updateMobileNav();
+}
+
+// App only: split the cardiac arrest, bradycardia and tachycardia checklists into
+// tabs (STEPS, DRUGS, ...) so each box gets its own screen instead of one long page.
+const sectionTabLabels = [
+  ["vfvt-drugs", "DRUGS"],
+  ["section-drug", "DRUGS"],
+  ["pals-brady-drug-card", "DRUGS"],
+  ["pals-heart-rate-card", "HR"],
+  ["pals-treatment-card", "TREAT"],
+  ["vfvt-defib", "DEFIB"],
+  ["vfvt-causes", "H&Ts"],
+  ["anaphylaxis-reference-table", "H&Ts"],
+  ["vfvt-during", "CPR"],
+  ["asystole-during-card", "CPR"],
+  ["brady-pacing-box", "PACING"],
+  ["tachy-energy-card", "CARDIOVERT"],
+  ["anaphylaxis-critical", "CRITICAL"],
+  ["brady-during-card", "RESUS"],
+  ["tachy-during-card", "RESUS"],
+];
+
+function getSectionTabLabel(panel) {
+  const match = sectionTabLabels.find(([className]) => panel.classList.contains(className));
+  if (match) return match[1];
+  const heading = panel.querySelector("h3, h4");
+  return (heading?.textContent.trim().split(/\s+/)[0] || "MORE").toUpperCase();
+}
+
+function addSectionTabs(root) {
+  const sheet = root.querySelector(".vfvt-sheet, .asystole-sheet, .bradycardia-sheet, .tachycardia-sheet");
+  if (!sheet) return;
+
+  const isVfvt = sheet.classList.contains("vfvt-sheet");
+  const body = isVfvt ? sheet : sheet.querySelector(".anaphylaxis-grid");
+  const columns = isVfvt
+    ? [sheet.querySelector(".vfvt-left"), sheet.querySelector(".vfvt-right")]
+    : [sheet.querySelector(".anaphylaxis-main"), sheet.querySelector(".anaphylaxis-side")];
+  if (!body || columns.some((column) => !column)) return;
+
+  const stepParts = isVfvt
+    ? [columns[0]]
+    : [...columns[0].children].filter((child) => child.matches(".anaphylaxis-start-badge, .anaphylaxis-main-box"));
+  const panels = isVfvt
+    ? [...columns[1].children]
+    : [...columns[0].children, ...columns[1].children].filter((child) => !stepParts.includes(child));
+
+  const tabs = [{ label: "STEPS", parts: stepParts }, ...panels.map((panel) => ({ label: getSectionTabLabel(panel), parts: [panel] }))];
+  if (tabs.length < 2) return;
+
+  const bar = document.createElement("nav");
+  bar.className = `section-tabs${tabs.length > 5 ? " section-tabs-compact" : ""}`;
+  bar.setAttribute("aria-label", "Checklist sections");
+  bar.innerHTML = tabs
+    .map((tab, index) => `<button class="section-tab" type="button" data-section-tab="${index}">${escapeHtml(tab.label)}</button>`)
+    .join("");
+  body.parentElement.insertBefore(bar, body);
+  body.classList.add("has-section-tabs");
+
+  const allParts = tabs.flatMap((tab) => tab.parts);
+  const showTab = (index) => {
+    allParts.forEach((part) => part.classList.add("section-tab-hidden"));
+    tabs[index].parts.forEach((part) => part.classList.remove("section-tab-hidden"));
+    columns.forEach((column) => {
+      if (isVfvt && tabs[index].parts.includes(column)) return column.classList.remove("section-tab-hidden");
+      column.classList.toggle("section-tab-hidden", !tabs[index].parts.some((part) => column.contains(part)));
+    });
+    bar.querySelectorAll(".section-tab").forEach((button, buttonIndex) => {
+      const active = buttonIndex === index;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  };
+
+  bar.querySelectorAll(".section-tab").forEach((button) => {
+    button.addEventListener("click", () => showTab(Number(button.dataset.sectionTab)));
+  });
+  showTab(0);
 }
 
 function updateMobileNav() {
