@@ -3547,3 +3547,55 @@ html:not(.phone-preview-mode) .asystole-title-row h2 {
 
 /* Protocol pages begin directly with the title. */
 html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
+
+/* App section tabs (STEPS, DRUGS, ...) on the cardiac arrest, bradycardia and tachycardia checklists */
+.section-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 6px;
+  background: var(--slate-soft);
+  border: 1px solid #d3dce8;
+  border-radius: 12px;
+}
+
+.section-tab {
+  flex: 1 1 auto;
+  padding: 10px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.section-tab.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(12, 27, 51, 0.25);
+}
+
+.has-section-tabs {
+  display: block !important;
+}
+
+.section-tab-hidden {
+  display: none !important;
+}
+
+.section-tabs-compact {
+  gap: 3px;
+}
+
+.section-tabs-compact .section-tab {
+  padding: 10px 4px;
+  font-size: 11.5px;
+  letter-spacing: 0;
+}
