@@ -2650,8 +2650,12 @@ function render() {
     appDirectoryMode && state.route === "categories" && Boolean(app.querySelector(".manual-detail-page"))
   );
 
+  if (phonePreviewMode) applyAppShortSteps(app);
   bindProtocolCards(app);
-  if (phonePreviewMode) addSectionTabs(app);
+  if (phonePreviewMode) {
+    addSectionTabs(app);
+    bindSectionLinks(app);
+  }
 
   app.querySelectorAll("[data-toggle-favorite]").forEach((element) => {
     element.addEventListener("click", () => {
@@ -2701,6 +2705,143 @@ function render() {
   });
 
   updateMobileNav();
+}
+
+// App only: shorter STEPS for the cardiac checklists. Keeps the bold main steps
+// word for word plus the key sub-points, doses and links to other checklists.
+// The website keeps the full wording.
+function appShortStepsLink(protocolId, label) {
+  return `<button class="manual-case-link" type="button" data-open-protocol="${protocolId}">${label}</button>`;
+}
+
+function appShortStepsTabLink(tab, label) {
+  return `<button class="manual-case-link" type="button" data-section-link="${escapeHtml(tab)}">${label}</button>`;
+}
+
+function appShortVfVtSteps(isPeds) {
+  const step = (text) => `<div class="vfvt-step">${text}</div>`;
+  const chevron = (text) => `<div class="vfvt-chevron">${text}</div>`;
+  const bullet = (text) => `<div class="vfvt-bullet">${text}</div>`;
+  const sub = (text) => `<div class="vfvt-subbullet">${text}</div>`;
+  const asystole = isPeds
+    ? appShortStepsLink("pals-cardiac-arrest-asystole-pea", "CHKLST 6-Asystole/PEA")
+    : appShortStepsLink("acls-cardiac-arrest-asystole-pea", "CHKLST 2-Asystole/PEA");
+  return [
+    step("1 Call for help and a code cart"),
+    chevron("Say: “Shock patient as soon as defibrillator arrives”"),
+    step("2 Put backboard under patient, supine"),
+    step("3 Turn FiO<sub>2</sub> to 100%, turn off volatile anesthetics"),
+    step("4 Start CPR – defibrillation – assessment cycle"),
+    chevron(`Perform CPR: ${isPeds ? "100/min, 8" : "100-120/min, 10"} breaths/min`),
+    chevron(`Defibrillate: ${isPeds ? "2-4 J/kg" : "200J"} biphasic, resume CPR immediately`),
+    chevron(`Give epinephrine every 3-5 min (${appShortStepsTabLink("DRUGS", "doses")})`),
+    chevron("Amiodarone for refractory VF/VT"),
+    chevron("Assess every 2 minutes"),
+    bullet(`Treat reversible causes (${appShortStepsTabLink("H&Ts", "Hs and Ts")})`),
+    bullet("Check rhythm; if organized, check pulse"),
+    isPeds ? sub("If VF/VT continues: repeat step 4, shock 4 J/kg") : sub("If VF/VT continues: restart step 4"),
+    isPeds ? sub("Still VF/VT 2 min later: restart step 4, shock 4-10 J/kg") : "",
+    sub(`If asystole/PEA: ${isPeds ? "" : "resume CPR, "}go to ${asystole}`)
+  ].join("");
+}
+
+function appShortAsystoleSteps(isPeds) {
+  const primary = (text) => `<div class="anaphylaxis-line primary">${text}</div>`;
+  const prompt = (text) => `<div class="anaphylaxis-line prompt">${text}</div>`;
+  const action = (text) => `<div class="asystole-action">${text}</div>`;
+  const bullet = (text) => `<div class="asystole-bullet">${text}</div>`;
+  const deep = (text) => `<div class="asystole-deep">${text}</div>`;
+  const vfvt = isPeds
+    ? appShortStepsLink("pals-cardiac-arrest-vf-vt", "CHKLST 5-VF/VT")
+    : appShortStepsLink("acls-cardiac-arrest-vf-vt", "CHKLST 1-VF/VT");
+  return [
+    primary("1 Call for help and a code cart"),
+    prompt("Say: “High quality CPR”"),
+    primary("2 Put backboard under patient, supine"),
+    primary("3 Turn FiO<sub>2</sub> to 100%, turn off volatile anesthetics"),
+    primary("4 Start CPR and assessment cycle"),
+    action(`Perform CPR: 100-120/min, ${isPeds ? "8" : "10"} breaths/min`),
+    isPeds ? bullet("Do not stop compressions for pulse check, use ETCO<sub>2</sub> for ROSC") : "",
+    action(`Give epinephrine every 3-5 min (${appShortStepsTabLink("DRUGS", "doses")})`),
+    action("Assess every 2 minutes"),
+    bullet("Check rhythm; if organized, check pulse"),
+    deep(`If asystole/PEA continues: restart step 4, read aloud ${appShortStepsTabLink("H&Ts", "Hs and Ts")}`),
+    deep(`If VF/VT: resume CPR, go to ${vfvt}`)
+  ].join("");
+}
+
+function appShortBradycardiaSteps(isPeds) {
+  const primary = (text) => `<div class="anaphylaxis-line primary">${text}</div>`;
+  const prompt = (text) => `<div class="anaphylaxis-line prompt">${text}</div>`;
+  const detail = (text) => `<div class="anaphylaxis-line detail">${text}</div>`;
+  return [
+    primary("1 Call for help and a code cart"),
+    primary("2 Turn FiO<sub>2</sub> to 100%, turn off volatile anesthetics"),
+    prompt("Assess adequate ventilation/oxygenation"),
+    primary(`3 Give atropine (${appShortStepsTabLink("DRUGS", "doses")})`),
+    primary("4 Stop surgical stimulation (if laparoscopy, desufflate)"),
+    primary("5 If refractory to atropine"),
+    detail(`${isPeds ? "Start epinephrine" : "Start epinephrine or dopamine infusion"} (${appShortStepsTabLink("DRUGS", "doses")})`),
+    `<div class="alternative-divider">-- or --</div>`,
+    detail(`Start transcutaneous pacing (${appShortStepsTabLink("PACING", "pacing steps")})`),
+    `<div class="anaphylaxis-subhead">Consider</div>`,
+    prompt(`Drug-induced causes (beta-blockers, Ca chan blockers${isPeds ? "" : ", digoxin"})`)
+  ].join("");
+}
+
+function appShortTachycardiaSteps(isPeds) {
+  const primary = (text) => `<div class="anaphylaxis-line primary">${text}</div>`;
+  const prompt = (text) => `<div class="anaphylaxis-line prompt">${text}</div>`;
+  const detail = (text) => `<div class="anaphylaxis-line detail">${text}</div>`;
+  return [
+    primary("1 Call for help and a code cart"),
+    primary("2 Turn FiO<sub>2</sub> to 100%, turn off volatile anesthetics"),
+    primary("3 Analyze rhythm"),
+    isPeds
+      ? prompt(`If no pulse: go to ${appShortStepsLink("pals-cardiac-arrest-asystole-pea", "CHKLST 6-Asystole/PEA")}`)
+      : prompt(`If wide complex, irregular: treat as VF, go to ${appShortStepsLink("acls-cardiac-arrest-vf-vt", "CHKLST 1-VF/VT")}`),
+    isPeds ? prompt(`If pulse: see ${appShortStepsTabLink("TREAT", "treatment")}`) : "",
+    prompt("Otherwise continue to step 4"),
+    primary("4 Prepare for immediate synchronized cardioversion"),
+    detail("Sedate conscious patients unless rapid deterioration"),
+    detail("DEFIB mode, electrodes on chest, press SYNC"),
+    detail("Confirm SYNC spike on each R-wave"),
+    primary(`5 Cardiovert at appropriate energy level (${appShortStepsTabLink("CARDIOVERT", "energy levels")})`),
+    detail("Begin at lowest; increase if tachycardia persists"),
+    detail("Press SYNC again after each shock")
+  ].join("");
+}
+
+function applyAppShortSteps(root) {
+  if (state.route !== "categories" || !root.querySelector(".manual-detail-page")) return;
+  const id = state.selectedProtocolId;
+  const isPeds = id.startsWith("pals-");
+  if (/cardiac-arrest-vf-vt$/.test(id)) {
+    const list = root.querySelector(".vfvt-checklist");
+    if (list) list.innerHTML = appShortVfVtSteps(isPeds);
+  } else if (/cardiac-arrest-asystole-pea$/.test(id)) {
+    const list = root.querySelector(".asystole-checklist");
+    if (list) list.innerHTML = appShortAsystoleSteps(isPeds);
+  } else if (/bradycardia-unstable$/.test(id)) {
+    const box = root.querySelector(".bradycardia-sheet .anaphylaxis-main-box");
+    if (box) box.innerHTML = `<div class="anaphylaxis-checklist">${appShortBradycardiaSteps(isPeds)}</div>`;
+  } else if (/tachycardia-unstable$/.test(id)) {
+    const box = root.querySelector(".tachycardia-sheet .anaphylaxis-main-box");
+    if (box) box.innerHTML = `<div class="anaphylaxis-checklist tachy-checklist">${appShortTachycardiaSteps(isPeds)}</div>`;
+  }
+}
+
+// Links inside STEPS that jump to another tab on the same page (e.g. "doses" -> DRUGS).
+function bindSectionLinks(root) {
+  root.querySelectorAll("[data-section-link]").forEach((link) => {
+    link.addEventListener("click", () => {
+      const bar = root.querySelector(".section-tabs");
+      const tab = bar && [...bar.querySelectorAll(".section-tab")].find((button) => button.textContent === link.dataset.sectionLink);
+      if (!tab) return;
+      tab.click();
+      bar.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+  });
 }
 
 // App only: split the cardiac arrest, bradycardia and tachycardia checklists into
