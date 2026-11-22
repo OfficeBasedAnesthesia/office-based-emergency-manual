@@ -3554,9 +3554,13 @@ html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
   top: 0;
   z-index: 5;
   display: flex;
-  gap: 6px;
-  margin: 0 0 14px;
-  padding: 6px;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 4px;
   background: var(--slate-soft);
   border: 1px solid #d3dce8;
   border-radius: 12px;
@@ -3564,15 +3568,16 @@ html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
 
 .section-tab {
   flex: 1 1 auto;
-  padding: 10px 6px;
+  padding: 10px 3px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--accent);
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -3582,20 +3587,39 @@ html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
   box-shadow: 0 1px 3px rgba(12, 27, 51, 0.25);
 }
 
+/* Keep the page inside the phone screen: without these, the tab row and the
+   two-column boxes could force the page wider than the screen. */
 .has-section-tabs {
   display: block !important;
+}
+
+.has-section-tabs,
+.has-section-tabs > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.anaphylaxis-sheet:has(> .section-tabs) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.has-section-tabs .tachy-arrest-row {
+  grid-template-columns: minmax(0, 128px) minmax(0, 1fr);
+}
+
+.has-section-tabs .tachy-during-body {
+  grid-template-columns: minmax(0, 135px) minmax(0, 1fr);
+}
+
+.has-section-tabs .tachy-arrest-row > *,
+.has-section-tabs .tachy-during-body > * {
+  overflow-wrap: anywhere;
 }
 
 .section-tab-hidden {
   display: none !important;
 }
 
-.section-tabs-compact {
-  gap: 3px;
-}
-
 .section-tabs-compact .section-tab {
-  padding: 10px 4px;
   font-size: 11.5px;
-  letter-spacing: 0;
 }
