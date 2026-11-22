@@ -2644,6 +2644,12 @@ function render() {
   if (state.route === "favorites") renderFavorites();
   if (state.route === "manual") renderManual();
 
+  // App only: slim header on protocol pages so the checklist starts higher up.
+  document.documentElement.classList.toggle(
+    "app-protocol-page",
+    appDirectoryMode && state.route === "categories" && Boolean(app.querySelector(".manual-detail-page"))
+  );
+
   bindProtocolCards(app);
   if (phonePreviewMode) addSectionTabs(app);
 

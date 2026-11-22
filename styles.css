@@ -3554,9 +3554,13 @@ html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
   top: 0;
   z-index: 5;
   display: flex;
-  gap: 6px;
-  margin: 0 0 14px;
-  padding: 6px;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 4px;
   background: var(--slate-soft);
   border: 1px solid #d3dce8;
   border-radius: 12px;
@@ -3564,15 +3568,16 @@ html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
 
 .section-tab {
   flex: 1 1 auto;
-  padding: 10px 6px;
+  padding: 10px 3px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--accent);
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -3582,20 +3587,123 @@ html:not(.phone-preview-mode) .manual-section-kicker { display: none; }
   box-shadow: 0 1px 3px rgba(12, 27, 51, 0.25);
 }
 
+/* Keep the page inside the phone screen: without these, the tab row and the
+   two-column boxes could force the page wider than the screen. */
 .has-section-tabs {
   display: block !important;
+}
+
+.has-section-tabs,
+.has-section-tabs > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.anaphylaxis-sheet:has(> .section-tabs) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.has-section-tabs .tachy-arrest-row {
+  grid-template-columns: minmax(0, 128px) minmax(0, 1fr);
+}
+
+.has-section-tabs .tachy-during-body {
+  grid-template-columns: minmax(0, 135px) minmax(0, 1fr);
+}
+
+.has-section-tabs .tachy-arrest-row > *,
+.has-section-tabs .tachy-during-body > * {
+  overflow-wrap: anywhere;
 }
 
 .section-tab-hidden {
   display: none !important;
 }
 
-.section-tabs-compact {
-  gap: 3px;
+.section-tabs-compact .section-tab {
+  font-size: 11.5px;
 }
 
-.section-tabs-compact .section-tab {
-  padding: 10px 4px;
-  font-size: 11.5px;
-  letter-spacing: 0;
+/* App only: slim header on protocol pages so the checklist starts higher up */
+html.app-protocol-page .site-header {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  min-height: 0 !important;
+  padding: 10px 52px 10px 16px !important;
+  text-align: left;
+}
+
+html.app-protocol-page .site-header .brand-lockup {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html.app-protocol-page .site-header .mgb-logo {
+  width: auto !important;
+  height: 30px !important;
+}
+
+html.app-protocol-page .site-header > div:not(.brand-lockup) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+}
+
+html.app-protocol-page .site-header .eyebrow,
+html.app-protocol-page .site-header h1 {
+  margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+}
+
+html.app-protocol-page .protocol-navigation-toolbar {
+  gap: 8px;
+}
+
+html.app-protocol-page .protocol-navigation-toolbar button {
+  min-height: 0 !important;
+  padding: 6px 12px !important;
+  font-size: 14px !important;
+}
+
+html.app-protocol-page .manual-detail-page > *:last-child {
+  row-gap: 10px;
+}
+
+html.app-protocol-page main h2 {
+  margin: 0 !important;
+  font-size: 21px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+html.app-protocol-page .asystole-title-row,
+html.app-protocol-page .vfvt-title-row {
+  display: block !important;
+  min-height: 0 !important;
+}
+
+html.app-protocol-page .asystole-rhythm-strips,
+html.app-protocol-page .vfvt-rhythm-strips {
+  display: none !important;
+}
+
+html.app-protocol-page .anaphylaxis-header p,
+html.app-protocol-page .vfvt-context-header p {
+  margin-top: 4px !important;
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+}
+
+html.app-protocol-page .manual-section-kicker {
+  margin-bottom: 2px !important;
+  font-size: 11px !important;
 }
