@@ -2731,7 +2731,6 @@ function appShortVfVtSteps(isPeds) {
     : appShortStepsLink("acls-cardiac-arrest-asystole-pea", "CHKLST 2-Asystole/PEA");
   return [
     step("1 Call for help and a code cart"),
-    chevron("Say: “Shock patient as soon as defibrillator arrives”"),
     step("2 Put backboard under patient, supine"),
     step("3 Turn FiO<sub>2</sub> to 100%, turn off volatile anesthetics"),
     step("4 Start CPR – defibrillation – assessment cycle"),
