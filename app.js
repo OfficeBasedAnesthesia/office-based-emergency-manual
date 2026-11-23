@@ -2650,7 +2650,10 @@ function render() {
     appDirectoryMode && state.route === "categories" && Boolean(app.querySelector(".manual-detail-page"))
   );
 
-  if (phonePreviewMode) applyAppShortSteps(app);
+  if (phonePreviewMode) {
+    applyAppShortSteps(app);
+    removeAppScriptLines(app);
+  }
   bindProtocolCards(app);
   if (phonePreviewMode) {
     addSectionTabs(app);
@@ -2829,6 +2832,19 @@ function applyAppShortSteps(root) {
     const box = root.querySelector(".tachycardia-sheet .anaphylaxis-main-box");
     if (box) box.innerHTML = `<div class="anaphylaxis-checklist tachy-checklist">${appShortTachycardiaSteps(isPeds)}</div>`;
   }
+}
+
+// App only: drop the "Ask: Who will be the crisis manager?" and
+// "Call: Initiate Transfer Protocol" lines from every protocol.
+const APP_REMOVED_LINES = /^(Ask:\s*“Who will be the crisis manager(”\?|\?”)|Call:\s*“Initiate Transfer Protocol”)$/;
+
+function removeAppScriptLines(root) {
+  const page = root.querySelector(".manual-detail-page");
+  if (!page) return;
+  [...page.querySelectorAll("*")]
+    .filter((element) => APP_REMOVED_LINES.test(element.textContent.trim().replace(/\s+/g, " ")))
+    .filter((element) => !APP_REMOVED_LINES.test(element.parentElement?.textContent.trim().replace(/\s+/g, " ") || ""))
+    .forEach((element) => element.remove());
 }
 
 // Links inside STEPS that jump to another tab on the same page (e.g. "doses" -> DRUGS).
